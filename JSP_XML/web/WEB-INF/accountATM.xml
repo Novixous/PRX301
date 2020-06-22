@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<customer xmlns:account="abc.vn" >
+    <account:allowed username ="thaidq" balance="1000">
+        <fullname>Thai Dang Quoc</fullname>
+        <address>123 Cho Quan</address>
+        <pin>0987</pin>
+        <class>D</class>
+        <transactions>
+            <transaction>
+                <id>2391311</id>
+                <date>2013/09/23</date>
+                <amount>50</amount>
+                <type>1</type>
+            </transaction>
+            <transaction>
+                <id>2391312</id>
+                <date>2013/12/23</date>
+                <amount>50</amount>
+                <type>2</type>
+            </transaction>
+            <transaction>
+                <id>2391313</id>
+                <date>2013/10/23</date>
+                <amount>50</amount>
+                <type>2</type>
+            </transaction>
+        </transactions>
+    </account:allowed>
+    <account:allowed username ="thuct" balance="2000">
+        <fullname>Cao Thanh Thu</fullname>
+        <address>abc xyz</address>
+        <pin>2103</pin>
+        <class>D</class>
+        <transactions>
+            <transaction>
+                <id>2391311</id>
+                <date>2013/09/23</date>
+                <amount>50</amount>
+                <type>1</type>
+            </transaction>
+            <transaction>
+                <id>2391312</id>
+                <date>2013/12/23</date>
+                <amount>50</amount>
+                <type>2</type>
+            </transaction>
+            <transaction>
+                <id>2391313</id>
+                <date>2013/10/23</date>
+                <amount>50</amount>
+                <type>2</type>
+            </transaction>
+        </transactions>
+    </account:allowed>
+    <account:expired username ="abc" balance="2000">
+        <fullname>a b c</fullname>
+        <address>abc xyz</address>
+        <pin>1111</pin>
+        <class>C</class>
+        <transactions>
+            <transaction>
+                <id>2391311</id>
+                <date>2013/09/23</date>
+                <amount>50</amount>
+                <type>1</type>
+            </transaction>
+            <transaction>
+                <id>2391312</id>
+                <date>2013/12/23</date>
+                <amount>50</amount>
+                <type>2</type>
+            </transaction>
+            <transaction>
+                <id>2391313</id>
+                <date>2013/10/23</date>
+                <amount>50</amount>
+                <type>2</type>
+            </transaction>
+        </transactions>
+    </account:expired>
+</customer>

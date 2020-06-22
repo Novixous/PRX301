@@ -9,6 +9,8 @@ package crawler;
  *
  * @author Novixous
  */
-public class AzaudioCategoriesCrawler {
-    
+public class MybossCrawler extends BaseCrawler implements Runnable{
+    private String url;
+    private String categoryName;
+    private TblCategory
 }

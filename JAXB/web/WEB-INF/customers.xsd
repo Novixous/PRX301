@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+
+<xsd:schema version="1.0"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://xml.netbeans.org/schema/customers"
+            xmlns="http://xml.netbeans.org/schema/customers"
+            elementFormDefault="qualified">
+    <xsd:element name="customer" type="Customer"/>
+    <xsd:complexType name="Customer">
+        <xsd:sequence>
+            <xsd:element name="customerid" type="xsd:string"/>
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="address" type="xsd:string"/>
+            <xsd:element name="city" type="xsd:string"/>
+            <xsd:element name="phone" type="xsd:positiveInteger"/>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>
