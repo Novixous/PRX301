@@ -1,7 +1,7 @@
 <%-- 
     Document   : index
-    Created on : Jun 22, 2020, 2:22:53 PM
-    Author     : Novixous
+    Created on : Jun 22, 2020, 2:23:35 PM
+    Author     : ASUS
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
@@ -25,7 +25,6 @@
                 }
                 return newRow;
             }
-
             function deleteRow(tableId, rowNumber) {
                 var tableElem = document.getElementById(tableId);
                 if (rowNumber > 0 && rowNumber < tableElem.rows.length) {
@@ -34,21 +33,19 @@
                     alert("Failed");
                 }
             }
-
             function getXmlHttpObject() {
                 var xmlHttp = null;
-                try {//firefox, opera 8.0+, safari
+                try { // firefox, Opera 8.0 +, Safari 
                     xmlHttp = new XMLHttpRequest();
-                } catch (e) {// IE
+                } catch (e) { // IE
                     try {
                         xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
                     } catch (e) {
                         xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
                     }
                 }
-                return  xmlHttp;
+                return xmlHttp;
             }
-
             function searchNode(node, strSearch, tableName) {
                 if (node == null) {
                     return;
@@ -58,37 +55,38 @@
                     if (tmp.indexOf(strSearch, 0) > -1) {
                         var parent = node.parentNode;
                         var attrID = parent.attributes.getNamedItem("id").text;
-                        new_XMLDOM += "<book id='" + attrID + "'>";
+                        new_XMLDOM += "<book id ='" + attrID + "'>";
                         count++;
                         cells[0] = count;
                         cells[1] = parent.attributes.getNamedItem("id").text;
                         cells[2] = node.firstChild.nodeValue;
-                        new_XMLDOM += "<booktitle>" + node.firstChild.nodeValue + "</booktitle>";
-                        var author = node.nextSibling;
+                        new_XMLDOM += "<booktitle>" +
+                                node.firstChild.nodeValue + "</booktitle>";
+                        var author = node.nextSibling; // avoid white space
                         cells[3] = author.firstChild.nodeValue;
-                        new_XMLDOM += "<author>" + author.firstChild.nodeValue + "</author>";
-                        var price = author.nextSibling;
+                        new_XMLDOM += "<author>" +
+                                author.firstChild.nodeValue + "</author>";
+
+                        var price = author.nextSibling; // avoid white space
                         cells[4] = price.firstChild.nodeValue;
-                        new_XMLDOM += "<price>" + price.firstChild.nodeValue + "</price>";
-                        xmlDOM.async = false;
+                        new_XMLDOM += "<price>" +
+                                author.firstChild.nodeValue + "</price>";
                         addRow(tableName, cells);
                         new_XMLDOM += "</book>";
                     }
                 }
                 var childs = node.childNodes;
                 for (var i = 0; i < childs.length; i++) {
-                    searchNode(childs[i], strSearch, tableName);
+                    searchNode(childs[i], strSearch, tableName)
                 }
             }
-
             function traversalDOMTree(fileName, tableName) {
                 var tableElem = document.getElementById(tableName);
                 var i = 1;
                 while (i < tableElem.rows.length) {
-                    deleteRow(tableName, i)
+                    deleteRow(tableName, i);
                 }
                 count = 0;
-                new_XMLDOM = null;
                 var xmlDOM = new ActiveXObject("Microsoft.XMLDOM");
                 new_XMLDOM = '<library xmlns="http://xml.netbeans.org/schema/library">';
                 xmlDOM.async = false;
@@ -98,18 +96,18 @@
                 } else {
                     searchNode(xmlDOM, myForm.txtSearch.value, tableName);
                     new_XMLDOM += "</library>";
-                    alert(new_XMLDOM);
+                    alert(new_XMLDOM);//4 debug
+
                 }
             }
-
             function update() {
                 xmlHttp = getXmlHttpObject();
                 if (xmlHttp == null) {
-                    alert("Your browser does not support AJAX");
+                    alert("YOUR BROWSER DOES NOT SUPPORT AJAXXXX");
                     return;
                 }
                 xmlHttp.open("POST", "Controller", true);
-                xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencode");
+                xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencode");
                 var url = "btnAction=update&xmlContent=";
                 url += new_XMLDOM;
                 xmlHttp.send(url);
@@ -117,10 +115,11 @@
         </script>
     </head>
     <body>
-        <h1>Javascript with DOM Demo</h1>
+        <h1>JavaScript with DOM Demo!</h1>
         <form name="myForm">
-            Name: <input type="text" name="txtSearch" value=""/><br/>
-            <input type="button" value="Search" onclick="traversalDOMTree('./library.xml', 'dataTable');"
+            Name: <input type="text" name="txtSearch" value=""/> <br/>
+            <input type="button" value="Search" onclick="traversalDOMTree('./library.xml', 'dataTable')"
+
         </form>
         <table border="1" id="dataTable">
             <thead>
