@@ -16,7 +16,7 @@ public class BaseThread extends Thread {
     private static BaseThread instance;
     private static final Object LOCK = new Object();
 
-    private static BaseThread getInstance() {
+    public static BaseThread getInstance() {
         synchronized (LOCK) {
             if (instance == null) {
                 instance = new BaseThread();
@@ -25,7 +25,7 @@ public class BaseThread extends Thread {
         return instance;
     }
     private static boolean suspended = false;
-    private static boolean isSuspended(){
+    public static boolean isSuspended(){
         return suspended;
     }
 

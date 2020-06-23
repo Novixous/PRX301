@@ -20,7 +20,7 @@ import javax.xml.stream.events.XMLEvent;
  *
  * @author Novixous
  */
-public class MybossCategoriesCrawler extends BaseCrawler {
+public class MybossCategoriesCrawler extends BaseCrawler{
 
     public MybossCategoriesCrawler(ServletContext context) {
         super(context);
