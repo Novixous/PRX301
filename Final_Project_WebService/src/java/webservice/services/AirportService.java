@@ -29,6 +29,7 @@ public class AirportService {
         return airportDAO.getAirportsForCrawler();
 
     }
+    
     private String toJson(Object entity) {
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd HH:mm:ss.SSS zzz")

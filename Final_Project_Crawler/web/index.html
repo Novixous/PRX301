@@ -9,8 +9,32 @@ and open the template in the editor.
         <title>TODO supply a title</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="bootstrap.min.css">
+        <style>
+            .my-custom-scrollbar {
+                position: relative;
+                height: 600px;
+                overflow: auto;
+            }
+            .table-wrapper-scroll-y {
+                display: block;
+            }
+            .table-striped> tbody >tr:nth-child(odd){
+                background-color:#d9edf7;
+            }
+            .table-striped>tbody>tr:nth-child(even){
+                background-color: #f2dede;
+            }
+            .table-striped> thead>tr{
+                background-color:#fff3b7;
+            }
+        </style>
         <script type="text/javascript">
-
+            var airports = [];
+            var results = [];
+            var result;
+            var validResult = true;
+            var current = 0;
             function getXmlHttpObject() {
                 var xmlHttp = null;
                 try {// firefox, opera 8.0+, safari
@@ -24,7 +48,37 @@ and open the template in the editor.
                 }
                 return xmlHttp;
             }
+            function sleep(milliseconds) {
+                var start = new Date().getTime();
+                for (var i = 0; i < 1e7; i++) {
+                    if ((new Date().getTime() - start) > milliseconds) {
+                        break;
+                    }
+                }
+            }
+            function addRow(tableId, cells) {
+                var tableElement = document.getElementById(tableId).getElementsByTagName('tbody')[0];
+                var newRow = tableElement.insertRow(tableElement.rows.length);
+                var newCell;
+                for (var i = 0; i < cells.length; i++) {
+                    newCell = newRow.insertCell(newRow.cells.length);
+                    newCell.innerHTML = cells[i];
+                    if (i === (cells.length - 1)) {
+                        newCell.style.color = "Grey";
+                        newCell.style.fontWeight = "bold";
+                    }
+                }
+                return newRow;
+            }
+            function deleteRow(tableId, rowNumber) {
+                var tableElement = document.getElementById(tableId);
+                if (rowNumber > 0 & rowNumber < tableElement.rows.length) {
+                    tableElement.deleteRow(rowNumber);
+                } else {
+                    alert("Failed");
+                }
 
+            }
             function getNodeValue(nodeName, node) {
                 if (node === null) {
                     return null;
@@ -87,11 +141,10 @@ and open the template in the editor.
                         //var a = getNodeValue("iataCode", xmlDOM);
                         //var airports = getElementsByXPath("//airport[descendant::iataCode[text()='AAL']]", xmlDOM);
                         var airportDoms = getElementsByXPath("//airport", xmlDOM);
-                        var airports = [];
                         for (var i = 0; i < airportDoms.length; i++) {
-                            var airportDom = airportDoms[i];
+                            var airportDom = parser.parseFromString(airportDoms[i].outerHTML, "application/xml");
                             var airport = {
-                                city: getElementsByXPath("//city", airportDoms[i])[0].firstChild.nodeValue,
+                                city: getElementsByXPath("//city", airportDom)[0].firstChild.nodeValue,
                                 continent: getElementsByXPath("//continent", airportDom)[0].firstChild.nodeValue,
                                 country: {
                                     code: getElementsByXPath("//country/code", airportDom)[0].firstChild.nodeValue,
@@ -109,19 +162,51 @@ and open the template in the editor.
                             };
                             airports.push(airport);
                         }
-                        return airports;
+                        for (var i = 0; i < airports.length; i++) {
+                            var cells = [];
+                            cells[0] = i;
+                            cells[1] = airports[i].iataCode;
+                            cells[2] = airports[i].name;
+                            cells[3] = airports[i].city;
+                            cells[4] = airports[i].country.code;
+                            cells[5] = airports[i].country.name;
+                            cells[6] = airports[i].continent;
+                            cells[7] = '<button type="button" id="crawl-btn-' + i + '" class="btn btn-primary" onclick="startCrawling(' + i + ')">Crawl</button>';
+                            cells[8] = 'Not started';
+                            addRow('tableAirport', cells);
+                        }
                     }
-                }
+                };
                 xmlHttp.open("GET", url, true);
                 xmlHttp.send(null);
             }
-            function getResult() {
+            async function startCrawling(i) {
+
+
+                destination = airports[i].iataCode;
+                var today = new Date();
+                for (var j = 1; j < 14; j++) {
+                    var date = new Date(today.getTime() + j * 24 * 60 * 60 * 1000);
+                    var dd = String(date.getDate()).padStart(2, '0');
+                    var mm = String(date.getMonth() + 1).padStart(2, '0');
+                    var yyyy = date.getFullYear();
+                    date = yyyy + '-' + mm + '-' + dd;
+                    var url = "http://localhost:2000/https://skiplagged.com/api/search.php?from=SGN&to=" + destination + "&depart=" + date + "&return=&format=v3";
+                    getResult(url);
+                }
+                var tableElement = document.getElementById("tableAirport").getElementsByTagName('tbody')[0];
+                var cell = tableElement.rows[i].cells[8];
+                cell.style.color = "Blue";
+                cell.innerHTML = 'Crawling';
+                var btn = document.getElementById("crawl-btn-" + i).disabled = true;
+
+            }
+            async function getResult(url) {
                 var xmlHttp = getXmlHttpObject();
                 if (xmlHttp === null) {
                     alert("Your Browser not support AJAX");
                     return;
                 }
-                var url = "http://localhost:2000/https://skiplagged.com/api/search.php?from=SGN&to=LGA&depart=2020-08-23&return=&format=v3";
                 xmlHttp.onreadystatechange = function () {
                     if (this.readyState === 4 && this.status === 200) {
                         var jsonObject = JSON.parse(this.responseText);
@@ -130,15 +215,34 @@ and open the template in the editor.
                         var airlines = jsonObject.airlines;
                         airlines = fixAirlines(airlines);
                         flights = fixFlights(flights, prices);
+                        if (airlines.airlines.airline.length === 0 || flights.flights.flight.length === 0) {
+                            validResult = false;
+                            return;
+                        }
                         var xmlFlights = OBJtoXML(flights);
                         var xmlAirlines = OBJtoXML(airlines);
-                        document.getElementById("demo").innerHTML =
-                                xmlAirlines;
-                        alert("hihi");
+                        result = {
+                            root: {
+                                xmlFlights: xmlFlights,
+                                xmlAirlines: xmlAirlines}
+                        };
+                        result = OBJtoXML(result);
+                        results.push(result);
+                        insertFlights();
                     }
                 };
                 xmlHttp.open("GET", url, true);
                 xmlHttp.send(null);
+            }
+            async function insertFlights() {
+                var xmlHttp = getXmlHttpObject();
+                if (xmlHttp === null) {
+                    alert("Your Browser not support AJAX");
+                    return;
+                }
+                xmlHttp.open("POST", "http://localhost:8080/Final_Project_WebService/flight", true);
+                var xml = results.shift();
+                xmlHttp.send(xml);
             }
             function fixFlights(obj, prices) {
                 var flights = {
@@ -153,13 +257,17 @@ and open the template in the editor.
                             price = prices[item].one_way_price;
                         }
                     }
+                    var count = obj[prop].count - 1;
                     var flight = {
                         flight: prop,
-                        count: obj[prop].count,
-                        data: obj[prop].data,
+                        departureDate: obj[prop].segments[0].departure.time.split("T")[0],
+                        arrivalDate: obj[prop].segments[count].departure.time.split("T")[0],
                         duration: obj[prop].duration,
-                        segments: obj[prop].segments,
-                        price: price
+                        price: price,
+                        departure: obj[prop].segments[0].departure.airport,
+                        arrival: obj[prop].segments[count].departure.airport,
+                        segments: obj[prop].segments
+
                     };
                     flights.flights.flight.push(flight);
                 }
@@ -180,6 +288,7 @@ and open the template in the editor.
                 }
                 return airlines;
             }
+
             function OBJtoXML(obj) {
                 var xml = '';
                 for (var prop in obj) {
@@ -200,15 +309,71 @@ and open the template in the editor.
                 //                var xml = xml.replace(/<\/?[0-9]{1,}>/g, '');
                 return xml;
             }
+            function dosomething() {
+                results;
+            }
+            function startCrawler() {
+                for (var i = 0; i < 5; i++) {
+                    if (current >= airports.length)
+                        break;
+                    startCrawling(current);
+                    current++;
+                }
+
+            }
             window.onload = getAirports;
         </script>
     </head>
     <body>
-        <div>TODO write content</div>
+        <h3 class="text-primary text-center">Flight Crawler</h3>
+        <div class="table-wrapper-scroll-y my-custom-scrollbar" style="margin: 10px">
 
-        <textarea id="demo" style="width: 100%; height: 800px">
-            
-        </textarea>
-        <input type="button" value="Click me" onclick="getResult()"/>
+            <table id="tableAirport" class="table table-bordered table-striped mb-0 table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">IATA code</th>
+                        <th scope="col">Airport name</th>
+                        <th scope="col">City</th>
+                        <th scope="col">Country code</th>
+                        <th scope="col">Country name</th>
+                        <th scope="col">Continent</th>
+                        <th scope="col"></th>
+                        <th scope="col">Status</th>                        
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+
+        </div>
+        <!--        <div class="container py-5">
+                    <div class="row">
+                        <div class="col-md-10 mx-auto">
+                            <form>
+                                <div class="form-group row">
+                                    <div class="col-sm-6">
+                                        <label for="departure_date">Departure date</label>
+                                        <input type="text" class="form-control" id="departure_date" placeholder="Departure date">
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label for="arrival_date">Arrival date</label>
+                                        <input type="text" class="form-control" id="arrival_date" placeholder="Arrival date">
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>-->
+        <div class="container">
+            <div class="row">
+                <div class="col text-center">
+                    <button type="button" class="btn btn-primary btn-lg btn-block bg-success" onclick="startCrawler()">Crawl 5 each</button>
+                </div>
+            </div>
+        </div>
+        <script src="jquery.min.js"></script>
+        <script src="bootstrap.min.js"></script>
     </body>
 </html>
