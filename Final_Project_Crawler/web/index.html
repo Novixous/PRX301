@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script type="text/javascript">
+
+            function getXmlHttpObject() {
+                var xmlHttp = null;
+                try {// firefox, opera 8.0+, safari
+                    xmlHttp = new XMLHttpRequest();
+                } catch (e) {
+                    try {// IE
+                        xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
+                    } catch (e) {
+                        xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+                    }
+                }
+                return xmlHttp;
+            }
+
+            function getNodeValue(nodeName, node) {
+                if (node === null) {
+                    return null;
+                }
+                if (node.tagName === nodeName) {
+                    return node.firstChild.nodeValue;
+                }
+                var temp = node.nextSibling;
+                if (temp !== null) {
+                    return getNodeValue(nodeName, temp);
+                }
+                var child = node.childNodes;
+                if (child !== null) {
+                    for (var i = 0; i < child.length; i++) {
+                        return getNodeValue(nodeName, child[i]);
+                    }
+                }
+            }
+            function getNodeValues(nodeName, node) {
+                if (node === null) {
+                    return null;
+                }
+                if (node.tagName === nodeName) {
+                    return node.firstChild.nodeValue;
+                }
+                var temp = node.nextSibling;
+                if (temp !== null) {
+                    return getNodeValue(nodeName, temp);
+                }
+                var child = node.childNodes;
+                if (child !== null) {
+                    for (var i = 0; i < child.length; i++) {
+                        return getNodeValue(nodeName, child[i]);
+                    }
+                }
+            }
+            function getElementsByXPath(xpath, parent)
+            {
+                let results = [];
+                let query = document.evaluate(xpath, parent || document,
+                        null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+                for (let i = 0, length = query.snapshotLength; i < length; ++i) {
+                    results.push(query.snapshotItem(i));
+                }
+                return results;
+            }
+            function getAirports() {
+                var xmlHttp = getXmlHttpObject();
+                if (xmlHttp === null) {
+                    alert("Your Browser not support AJAX");
+                    return;
+                }
+                var url = "http://localhost:8080/Final_Project_WebService/airport";
+                xmlHttp.onreadystatechange = function () {
+                    if (this.readyState === 4 && this.status === 200) {
+                        var parser = new DOMParser();
+                        var xmlString = this.responseText;
+                        var xmlString = xmlString.replace("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>", "")
+                        xmlDOM = parser.parseFromString(this.responseText, "application/xml");
+                        //var a = getNodeValue("iataCode", xmlDOM);
+                        //var airports = getElementsByXPath("//airport[descendant::iataCode[text()='AAL']]", xmlDOM);
+                        var airportDoms = getElementsByXPath("//airport", xmlDOM);
+                        var airports = [];
+                        for (var i = 0; i < airportDoms.length; i++) {
+                            var airportDom = airportDoms[i];
+                            var airport = {
+                                city: getElementsByXPath("//city", airportDoms[i])[0].firstChild.nodeValue,
+                                continent: getElementsByXPath("//continent", airportDom)[0].firstChild.nodeValue,
+                                country: {
+                                    code: getElementsByXPath("//country/code", airportDom)[0].firstChild.nodeValue,
+                                    continent: getElementsByXPath("//country/continent", airportDom)[0].firstChild.nodeValue,
+                                    countryTravelCost: {
+                                        costCheap: getElementsByXPath("//countryTravelCost/costCheap", airportDom)[0].firstChild.nodeValue,
+                                        costHigh: getElementsByXPath("//countryTravelCost/costHigh", airportDom)[0].firstChild.nodeValue,
+                                        costMedium: getElementsByXPath("//countryTravelCost/costMedium", airportDom)[0].firstChild.nodeValue
+                                    },
+                                    name: getElementsByXPath("//country/name", airportDom)[0].firstChild.nodeValue
+                                },
+                                iataCode: getElementsByXPath("//iataCode", airportDom)[0].firstChild.nodeValue,
+                                name: getElementsByXPath("//name", airportDom)[0].firstChild.nodeValue,
+                                type: getElementsByXPath("//type", airportDom)[0].firstChild.nodeValue
+                            };
+                            airports.push(airport);
+                        }
+                        return airports;
+                    }
+                }
+                xmlHttp.open("GET", url, true);
+                xmlHttp.send(null);
+            }
+            function getResult() {
+                var xmlHttp = getXmlHttpObject();
+                if (xmlHttp === null) {
+                    alert("Your Browser not support AJAX");
+                    return;
+                }
+                var url = "http://localhost:2000/https://skiplagged.com/api/search.php?from=SGN&to=LGA&depart=2020-08-23&return=&format=v3";
+                xmlHttp.onreadystatechange = function () {
+                    if (this.readyState === 4 && this.status === 200) {
+                        var jsonObject = JSON.parse(this.responseText);
+                        var flights = jsonObject.flights;
+                        var prices = jsonObject.itineraries.outbound;
+                        var airlines = jsonObject.airlines;
+                        airlines = fixAirlines(airlines);
+                        flights = fixFlights(flights, prices);
+                        var xmlFlights = OBJtoXML(flights);
+                        var xmlAirlines = OBJtoXML(airlines);
+                        document.getElementById("demo").innerHTML =
+                                xmlAirlines;
+                        alert("hihi");
+                    }
+                };
+                xmlHttp.open("GET", url, true);
+                xmlHttp.send(null);
+            }
+            function fixFlights(obj, prices) {
+                var flights = {
+                    flights: {
+                        flight: []
+                    }
+                };
+                var price;
+                for (var prop in obj) {
+                    for (var item in prices) {
+                        if (prop === prices[item].flight) {
+                            price = prices[item].one_way_price;
+                        }
+                    }
+                    var flight = {
+                        flight: prop,
+                        count: obj[prop].count,
+                        data: obj[prop].data,
+                        duration: obj[prop].duration,
+                        segments: obj[prop].segments,
+                        price: price
+                    };
+                    flights.flights.flight.push(flight);
+                }
+                return flights;
+            }
+            function fixAirlines(obj) {
+                var airlines = {
+                    airlines: {
+                        airline: []
+                    }
+                };
+                for (var prop in obj) {
+                    var airline = {
+                        code: prop,
+                        name: obj[prop].name
+                    };
+                    airlines.airlines.airline.push(airline);
+                }
+                return airlines;
+            }
+            function OBJtoXML(obj) {
+                var xml = '';
+                for (var prop in obj) {
+                    xml += obj[prop] instanceof Array ? '' : "<" + prop + ">\n";
+                    if (obj[prop] instanceof Array) {
+                        for (var array in obj[prop]) {
+                            xml += "<" + prop + ">\n";
+                            xml += OBJtoXML(new Object(obj[prop][array]));
+                            xml += "</" + prop + ">\n";
+                        }
+                    } else if (typeof obj[prop] === "object") {
+                        xml += OBJtoXML(new Object(obj[prop]));
+                    } else {
+                        xml += obj[prop] + "\n";
+                    }
+                    xml += obj[prop] instanceof Array ? '' : "</" + prop + ">\n";
+                }
+                //                var xml = xml.replace(/<\/?[0-9]{1,}>/g, '');
+                return xml;
+            }
+            window.onload = getAirports;
+        </script>
+    </head>
+    <body>
+        <div>TODO write content</div>
+
+        <textarea id="demo" style="width: 100%; height: 800px">
+            
+        </textarea>
+        <input type="button" value="Click me" onclick="getResult()"/>
+    </body>
+</html>

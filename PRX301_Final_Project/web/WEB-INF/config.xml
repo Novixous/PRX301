@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <domain>https://skiplagged.com</domain>
+    <flight-sub-domain>/flights</flight-sub-domain>
+</config>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://java.sun.com/xml/ns/persistence/orm"
+        version="2.0">
+
+    <entity class="khanglna.dtos.StudentDTO">
+        <table name="student" schema="sinhvien" catalog=""/>
+        <attributes>
+            <id name="studentId">
+                <column name="student_id" precision="11"/>
+            </id>
+            <basic name="name">
+                <column name="name" nullable="false" length="45"/>
+            </basic>
+        </attributes>
+    </entity>
+</entity-mappings>

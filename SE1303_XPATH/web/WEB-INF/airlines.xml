@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
+<airlines>
+    <airline>
+        <code>AA</code>
+        <name>American Airlines</name>
+    </airline>
+    <airline>
+        <code>AC</code>
+        <name>Air Canada</name>
+    </airline>
+    <airline>
+        <code>AF</code>
+        <name>Air France</name>
+    </airline>
+    <airline>
+        <code>B6</code>
+        <name>JetBlue Airways</name>
+    </airline>
+    <airline>
+        <code>BR</code>
+        <name>EVA Air</name>
+    </airline>
+    <airline>
+        <code>DL</code>
+        <name>Delta Air Lines</name>
+    </airline>
+    <airline>
+        <code>F9</code>
+        <name>Frontier Airlines</name>
+    </airline>
+    <airline>
+        <code>JL</code>
+        <name>Japan Airlines Domestic</name>
+    </airline>
+    <airline>
+        <code>KE</code>
+        <name>Korean Air</name>
+    </airline>
+    <airline>
+        <code>NH</code>
+        <name>All Nippon Airways</name>
+    </airline>
+    <airline>
+        <code>OS</code>
+        <name>Austrian Airlines</name>
+    </airline>
+    <airline>
+        <code>OZ</code>
+        <name>Asiana Airlines</name>
+    </airline>
+    <airline>
+        <code>QR</code>
+        <name>Qatar Airways</name>
+    </airline>
+    <airline>
+        <code>TG</code>
+        <name>Thai Airways International</name>
+    </airline>
+    <airline>
+        <code>UA</code>
+        <name>United Airlines</name>
+    </airline>
+    <airline>
+        <code>AS</code>
+        <name>Alaska Airlines</name>
+    </airline>
+    <airline>
+        <code>CI</code>
+        <name>China Airlines</name>
+    </airline>
+    <airline>
+        <code>CX</code>
+        <name>Cathay Pacific</name>
+    </airline>
+    <airline>
+        <code>EK</code>
+        <name>Emirates</name>
+    </airline>
+    <airline>
+        <code>NK</code>
+        <name>Spirit Airlines</name>
+    </airline>
+    <airline>
+        <code>PR</code>
+        <name>Philippine Airlines</name>
+    </airline>
+    <airline>
+        <code>VN</code>
+        <name>Vietnam Airlines</name>
+    </airline>
+    <airline>
+        <code>WN</code>
+        <name>Southwest Airlines</name>
+    </airline>
+    <airline>
+        <code>WS</code>
+        <name>WestJet</name>
+    </airline>
+</airlines>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+
+
+<config>
+    <country-cost-crawler>
+        <main-domain>https://www.budgetyourtrip.com</main-domain>
+        <countries-list-url>https://www.budgetyourtrip.com/countrylist.php</countries-list-url>
+        <country-detail-url>https://www.budgetyourtrip.com/budgetreportadv.php?geonameid=&amp;countrysearch=&amp;country_code=%s&amp;categoryid=0&amp;budgettype=%d&amp;triptype=0&amp;startdate=&amp;enddate=&amp;travelerno=0</country-detail-url>
+        <currency-converter-url>https://www.budgetyourtrip.com/ajax/currencyconvert.php?amount=%f&amp;to=USD&amp;from=%s</currency-converter-url>
+    </country-cost-crawler>
+</config>

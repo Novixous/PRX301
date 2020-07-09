@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<li class="cost-tile cost-tile-main ">									
+    <div class="cost-tile-label">										Average Daily Cost										<span class="cost-tile-label-description">											Per person, per day										</span>									</div>									
+    <div class="cost-tile-value">										
+        <span class="symbol">Lek</span>
+        <span class="curvalue">2,194</span>									
+    </div>																	
+</li>								
+<li class="cost-tile cost-tile-main cost-tile-main-small ">									
+    <div class="cost-tile-label">										One Week										<span class="cost-tile-label-description">											Per person										</span>									</div>									
+    <div class="cost-tile-value">										
+        <span class="symbol">Lek</span>
+        <span class="curvalue">15,355</span>									
+    </div>																	
+</li>								
+<li class="cost-tile cost-tile-main cost-tile-main-small ">									
+    <div class="cost-tile-label">										2 Weeks										<span class="cost-tile-label-description">											Per person										</span>									</div>									
+    <div class="cost-tile-value">										
+        <span class="symbol">Lek</span>
+        <span class="curvalue">30,709</span>									
+    </div>																	
+</li>								
+<li class="cost-tile cost-tile-main cost-tile-main-small ">									
+    <div class="cost-tile-label">										One Month										<span class="cost-tile-label-description">											Per person										</span>									</div>									
+    <div class="cost-tile-value">										
+        <span class="symbol">Lek</span>
+        <span class="curvalue">65,805</span>									
+    </div>																	
+</li>								
+<li class="cost-tile cost-tile-main cost-tile-main-small ">									
+    <div class="cost-tile-label">										One Week										<span class="cost-tile-label-description">											For a couple										</span>									</div>									
+    <div class="cost-tile-value">										
+        <span class="symbol">Lek</span>
+        <span class="curvalue">30,709</span>									
+    </div>																	
+</li>								
+<li class="cost-tile cost-tile-main cost-tile-main-small ">									
+    <div class="cost-tile-label">										2 Weeks										<span class="cost-tile-label-description">											For a couple										</span>									</div>									
+    <div class="cost-tile-value">										
+        <span class="symbol">Lek</span>
+        <span class="curvalue">61,418</span>									
+    </div>																	
+</li>								
+<li class="cost-tile cost-tile-main cost-tile-main-small ">									
+    <div class="cost-tile-label">										One Month										<span class="cost-tile-label-description">											For a couple										</span>									</div>									
+    <div class="cost-tile-value">										
+        <span class="symbol">Lek</span>
+        <span class="curvalue">131,610</span>									
+    </div>																	
+</li>
