@@ -6,7 +6,7 @@
 package webservice.dtos;
 
 import java.io.Serializable;
-import java.util.Collection;
+import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -50,7 +50,7 @@ public class Country implements Serializable {
     @Column(name = "Continent")
     private String continent;
     @OneToMany(mappedBy = "country")
-    private Collection<Airport> airportCollection;
+    private List<Airport> airportList;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "country")
     private CountryTravelCost countryTravelCost;
 
@@ -86,12 +86,12 @@ public class Country implements Serializable {
     }
 
     @XmlTransient
-    public Collection<Airport> getAirportCollection() {
-        return airportCollection;
+    public List<Airport> getAirportList() {
+        return airportList;
     }
 
-    public void setAirportCollection(Collection<Airport> airportCollection) {
-        this.airportCollection = airportCollection;
+    public void setAirportList(List<Airport> airportList) {
+        this.airportList = airportList;
     }
 
     public CountryTravelCost getCountryTravelCost() {
@@ -126,5 +126,5 @@ public class Country implements Serializable {
     public String toString() {
         return "webservice.dtos.Country[ code=" + code + " ]";
     }
-
+    
 }

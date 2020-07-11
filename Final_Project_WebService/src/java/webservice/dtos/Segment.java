@@ -6,6 +6,8 @@
 package webservice.dtos;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -13,29 +15,32 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
  * @author Novixous
  */
 @Entity
-@Table(name = "Segments")
+@Table(name = "Segment", uniqueConstraints = {@UniqueConstraint(columnNames = {"flight_number","airline_code","departure_time","arrival_time","departure","arrival"})})
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "Segments.findAll", query = "SELECT s FROM Segments s")
-    , @NamedQuery(name = "Segments.findBySegmentId", query = "SELECT s FROM Segments s WHERE s.segmentId = :segmentId")
-    , @NamedQuery(name = "Segments.findByFlightNumber", query = "SELECT s FROM Segments s WHERE s.flightNumber = :flightNumber")
-    , @NamedQuery(name = "Segments.findByDepartureTime", query = "SELECT s FROM Segments s WHERE s.departureTime = :departureTime")
-    , @NamedQuery(name = "Segments.findByArrivalTime", query = "SELECT s FROM Segments s WHERE s.arrivalTime = :arrivalTime")
-    , @NamedQuery(name = "Segments.findByDuration", query = "SELECT s FROM Segments s WHERE s.duration = :duration")
-    , @NamedQuery(name = "Segments.findByPosition", query = "SELECT s FROM Segments s WHERE s.position = :position")})
-public class Segments implements Serializable {
+    @NamedQuery(name = "Segment.findAll", query = "SELECT s FROM Segment s")
+    , @NamedQuery(name = "Segment.findBySegmentId", query = "SELECT s FROM Segment s WHERE s.segmentId = :segmentId")
+    , @NamedQuery(name = "Segment.findByFlightNumber", query = "SELECT s FROM Segment s WHERE s.flightNumber = :flightNumber")
+    , @NamedQuery(name = "Segment.findByDepartureTime", query = "SELECT s FROM Segment s WHERE s.departureTime = :departureTime")
+    , @NamedQuery(name = "Segment.findByArrivalTime", query = "SELECT s FROM Segment s WHERE s.arrivalTime = :arrivalTime")
+    , @NamedQuery(name = "Segment.findByDuration", query = "SELECT s FROM Segment s WHERE s.duration = :duration")
+    , @NamedQuery(name = "Segment.findByPosition", query = "SELECT s FROM Segment s WHERE s.position = :position")})
+public class Segment implements Serializable, Cloneable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -56,23 +61,22 @@ public class Segments implements Serializable {
     private Integer duration;
     @Column(name = "position")
     private Integer position;
+    @ManyToMany(mappedBy = "segmentList")
+    private List<Flight> flightList = new ArrayList<>();
     @JoinColumn(name = "airline_code", referencedColumnName = "airline_code")
     @ManyToOne
-    private Airlines airlineCode;
+    private Airline airlineCode;
     @JoinColumn(name = "departure", referencedColumnName = "iata_code")
     @ManyToOne
     private Airport departure;
     @JoinColumn(name = "arrival", referencedColumnName = "iata_code")
     @ManyToOne
     private Airport arrival;
-    @JoinColumn(name = "flight_id", referencedColumnName = "flight_id")
-    @ManyToOne
-    private Flights flightId;
 
-    public Segments() {
+    public Segment() {
     }
 
-    public Segments(Integer segmentId) {
+    public Segment(Integer segmentId) {
         this.segmentId = segmentId;
     }
 
@@ -124,11 +128,25 @@ public class Segments implements Serializable {
         this.position = position;
     }
 
-    public Airlines getAirlineCode() {
+    @XmlTransient
+    public List<Flight> getFlightList() {
+        return flightList;
+    }
+
+    public void setFlightList(List<Flight> flightList) {
+        this.flightList = flightList;
+    }
+
+    public void addFlight(Flight flight) {
+        this.flightList.add(flight);
+        flight.getSegmentList().add(this);
+    }
+
+    public Airline getAirlineCode() {
         return airlineCode;
     }
 
-    public void setAirlineCode(Airlines airlineCode) {
+    public void setAirlineCode(Airline airlineCode) {
         this.airlineCode = airlineCode;
     }
 
@@ -148,14 +166,6 @@ public class Segments implements Serializable {
         this.arrival = arrival;
     }
 
-    public Flights getFlightId() {
-        return flightId;
-    }
-
-    public void setFlightId(Flights flightId) {
-        this.flightId = flightId;
-    }
-
     @Override
     public int hashCode() {
         int hash = 0;
@@ -166,10 +176,10 @@ public class Segments implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Segments)) {
+        if (!(object instanceof Segment)) {
             return false;
         }
-        Segments other = (Segments) object;
+        Segment other = (Segment) object;
         if ((this.segmentId == null && other.segmentId != null) || (this.segmentId != null && !this.segmentId.equals(other.segmentId))) {
             return false;
         }
@@ -178,7 +188,12 @@ public class Segments implements Serializable {
 
     @Override
     public String toString() {
-        return "webservice.dtos.Segments[ segmentId=" + segmentId + " ]";
+        return "webservice.dtos.Segment[ segmentId=" + segmentId + " ]";
     }
-    
+
+    @Override
+    public Segment clone() throws CloneNotSupportedException {
+        return (Segment) super.clone(); //To change body of generated methods, choose Tools | Templates.
+    }
+
 }

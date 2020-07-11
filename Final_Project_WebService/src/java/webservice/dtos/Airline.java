@@ -6,7 +6,7 @@
 package webservice.dtos;
 
 import java.io.Serializable;
-import java.util.Collection;
+import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -25,13 +25,13 @@ import javax.xml.bind.annotation.XmlTransient;
  * @author Novixous
  */
 @Entity
-@Table(name = "Airlines")
+@Table(name = "Airline")
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "Airlines.findAll", query = "SELECT a FROM Airlines a")
-    , @NamedQuery(name = "Airlines.findByAirlineCode", query = "SELECT a FROM Airlines a WHERE a.airlineCode = :airlineCode")
-    , @NamedQuery(name = "Airlines.findByName", query = "SELECT a FROM Airlines a WHERE a.name = :name")})
-public class Airlines implements Serializable {
+    @NamedQuery(name = "Airline.findAll", query = "SELECT a FROM Airline a")
+    , @NamedQuery(name = "Airline.findByAirlineCode", query = "SELECT a FROM Airline a WHERE a.airlineCode = :airlineCode")
+    , @NamedQuery(name = "Airline.findByName", query = "SELECT a FROM Airline a WHERE a.name = :name")})
+public class Airline implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -44,12 +44,12 @@ public class Airlines implements Serializable {
     @Column(name = "name")
     private String name;
     @OneToMany(mappedBy = "airlineCode")
-    private Collection<Segments> segmentsCollection;
+    private List<Segment> segmentList;
 
-    public Airlines() {
+    public Airline() {
     }
 
-    public Airlines(String airlineCode) {
+    public Airline(String airlineCode) {
         this.airlineCode = airlineCode;
     }
 
@@ -70,12 +70,12 @@ public class Airlines implements Serializable {
     }
 
     @XmlTransient
-    public Collection<Segments> getSegmentsCollection() {
-        return segmentsCollection;
+    public List<Segment> getSegmentList() {
+        return segmentList;
     }
 
-    public void setSegmentsCollection(Collection<Segments> segmentsCollection) {
-        this.segmentsCollection = segmentsCollection;
+    public void setSegmentList(List<Segment> segmentList) {
+        this.segmentList = segmentList;
     }
 
     @Override
@@ -88,10 +88,10 @@ public class Airlines implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Airlines)) {
+        if (!(object instanceof Airline)) {
             return false;
         }
-        Airlines other = (Airlines) object;
+        Airline other = (Airline) object;
         if ((this.airlineCode == null && other.airlineCode != null) || (this.airlineCode != null && !this.airlineCode.equals(other.airlineCode))) {
             return false;
         }
@@ -100,7 +100,7 @@ public class Airlines implements Serializable {
 
     @Override
     public String toString() {
-        return "webservice.dtos.Airlines[ airlineCode=" + airlineCode + " ]";
+        return "webservice.dtos.Airline[ airlineCode=" + airlineCode + " ]";
     }
     
 }

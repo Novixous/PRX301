@@ -6,7 +6,8 @@
 package webservice.dtos;
 
 import java.io.Serializable;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -14,10 +15,11 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -28,16 +30,16 @@ import javax.xml.bind.annotation.XmlTransient;
  * @author Novixous
  */
 @Entity
-@Table(name = "Flights")
+@Table(name = "Flight")
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "Flights.findAll", query = "SELECT f FROM Flights f")
-    , @NamedQuery(name = "Flights.findByFlightId", query = "SELECT f FROM Flights f WHERE f.flightId = :flightId")
-    , @NamedQuery(name = "Flights.findByDepartureDate", query = "SELECT f FROM Flights f WHERE f.departureDate = :departureDate")
-    , @NamedQuery(name = "Flights.findByArrivalDate", query = "SELECT f FROM Flights f WHERE f.arrivalDate = :arrivalDate")
-    , @NamedQuery(name = "Flights.findByDuration", query = "SELECT f FROM Flights f WHERE f.duration = :duration")
-    , @NamedQuery(name = "Flights.findByPrice", query = "SELECT f FROM Flights f WHERE f.price = :price")})
-public class Flights implements Serializable {
+    @NamedQuery(name = "Flight.findAll", query = "SELECT f FROM Flight f")
+    , @NamedQuery(name = "Flight.findByFlightId", query = "SELECT f FROM Flight f WHERE f.flightId = :flightId")
+    , @NamedQuery(name = "Flight.findByDepartureDate", query = "SELECT f FROM Flight f WHERE f.departureDate = :departureDate")
+    , @NamedQuery(name = "Flight.findByArrivalDate", query = "SELECT f FROM Flight f WHERE f.arrivalDate = :arrivalDate")
+    , @NamedQuery(name = "Flight.findByDuration", query = "SELECT f FROM Flight f WHERE f.duration = :duration")
+    , @NamedQuery(name = "Flight.findByPrice", query = "SELECT f FROM Flight f WHERE f.price = :price")})
+public class Flight implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -56,19 +58,22 @@ public class Flights implements Serializable {
     // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
     @Column(name = "price")
     private Double price;
+    @JoinTable(name = "Flight_Segment", joinColumns = {
+        @JoinColumn(name = "flight_id", referencedColumnName = "flight_id")}, inverseJoinColumns = {
+        @JoinColumn(name = "segment_id", referencedColumnName = "segment_id")})
+    @ManyToMany
+    private List<Segment> segmentList = new ArrayList<>();
     @JoinColumn(name = "departure", referencedColumnName = "iata_code")
     @ManyToOne
     private Airport departure;
     @JoinColumn(name = "arrival", referencedColumnName = "iata_code")
     @ManyToOne
     private Airport arrival;
-    @OneToMany(mappedBy = "flightId")
-    private Collection<Segments> segmentsCollection;
 
-    public Flights() {
+    public Flight() {
     }
 
-    public Flights(Integer flightId) {
+    public Flight(Integer flightId) {
         this.flightId = flightId;
     }
 
@@ -112,6 +117,20 @@ public class Flights implements Serializable {
         this.price = price;
     }
 
+    @XmlTransient
+    public List<Segment> getSegmentList() {
+        return segmentList;
+    }
+
+    public void setSegmentList(List<Segment> segmentList) {
+        this.segmentList = segmentList;
+    }
+
+    public void addSegment(Segment segment) {
+        this.segmentList.add(segment);
+        segment.getFlightList().add(this);
+    }
+
     public Airport getDeparture() {
         return departure;
     }
@@ -128,15 +147,6 @@ public class Flights implements Serializable {
         this.arrival = arrival;
     }
 
-    @XmlTransient
-    public Collection<Segments> getSegmentsCollection() {
-        return segmentsCollection;
-    }
-
-    public void setSegmentsCollection(Collection<Segments> segmentsCollection) {
-        this.segmentsCollection = segmentsCollection;
-    }
-
     @Override
     public int hashCode() {
         int hash = 0;
@@ -147,10 +157,10 @@ public class Flights implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Flights)) {
+        if (!(object instanceof Flight)) {
             return false;
         }
-        Flights other = (Flights) object;
+        Flight other = (Flight) object;
         if ((this.flightId == null && other.flightId != null) || (this.flightId != null && !this.flightId.equals(other.flightId))) {
             return false;
         }
@@ -159,7 +169,7 @@ public class Flights implements Serializable {
 
     @Override
     public String toString() {
-        return "webservice.dtos.Flights[ flightId=" + flightId + " ]";
+        return "webservice.dtos.Flight[ flightId=" + flightId + " ]";
     }
-    
+
 }

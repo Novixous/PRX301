@@ -30,11 +30,23 @@ and open the template in the editor.
             }
         </style>
         <script type="text/javascript">
+            var continent = [];
+            continent[0] = "Africa";
+            continent[1] = "Antarctica";
+            continent[2] = "Asia";
+            continent[3] = "Europe";
+            continent[4] = "North America";
+            continent[5] = "Oceania";
+            continent[6] = "South America";
+            var flightInserted = 0;
             var airports = [];
-            var results = [];
-            var result;
+            var crawlAirports = [];
+            var resultAirlines = [];
+            var resultFlights = [];
+            var resultSegments = [];
             var validResult = true;
             var current = 0;
+            var pendingConnections = 0;
             function getXmlHttpObject() {
                 var xmlHttp = null;
                 try {// firefox, opera 8.0+, safari
@@ -125,73 +137,96 @@ and open the template in the editor.
                 }
                 return results;
             }
-            function getAirports() {
+            function addAirports(xmlDOM, obj) {
+                var parser = new DOMParser();
+                var airportDoms = getElementsByXPath("//airport", xmlDOM);
+                for (var i = 0; i < airportDoms.length; i++) {
+                    var airportDom = parser.parseFromString(airportDoms[i].outerHTML, "application/xml");
+                    var airport = {
+                        city: getElementsByXPath("//city", airportDom)[0].firstChild.nodeValue,
+                        continent: getElementsByXPath("//continent", airportDom)[0].firstChild.nodeValue,
+                        country: {
+                            code: getElementsByXPath("//country/code", airportDom)[0].firstChild.nodeValue,
+                            continent: getElementsByXPath("//country/continent", airportDom)[0].firstChild.nodeValue,
+                            countryTravelCost: {
+                                costCheap: typeof getElementsByXPath("//countryTravelCost/costCheap", airportDom)[0] === 'undefined' ? null : getElementsByXPath("//countryTravelCost/costCheap", airportDom)[0].firstChild.nodeValue,
+                                costHigh: typeof getElementsByXPath("//countryTravelCost/costHigh", airportDom)[0] === 'undefined' ? null : getElementsByXPath("//countryTravelCost/costHigh", airportDom)[0].firstChild.nodeValue,
+                                costMedium: typeof getElementsByXPath("//countryTravelCost/costMedium", airportDom)[0] === 'undefined' ? null : getElementsByXPath("//countryTravelCost/costMedium", airportDom)[0].firstChild.nodeValue
+                            },
+                            name: getElementsByXPath("//country/name", airportDom)[0].firstChild.nodeValue
+                        },
+                        iataCode: getElementsByXPath("//iataCode", airportDom)[0].firstChild.nodeValue,
+                        name: getElementsByXPath("//airport/name", airportDom)[0].firstChild.nodeValue,
+                        type: getElementsByXPath("//type", airportDom)[0].firstChild.nodeValue
+                    };
+                    obj.push(airport);
+
+                }
+            }
+            function addAirportsToTable() {
+                for (var i = 0; i < crawlAirports.length; i++) {
+                    var cells = [];
+                    cells[0] = i;
+                    cells[1] = crawlAirports[i].iataCode;
+                    cells[2] = crawlAirports[i].name;
+                    cells[3] = crawlAirports[i].city;
+                    cells[4] = crawlAirports[i].country.code;
+                    cells[5] = crawlAirports[i].country.name;
+                    cells[6] = continent[crawlAirports[i].continent];
+                    cells[7] = '<button type="button" id="crawl-btn-' + i + '" class="btn btn-primary" onclick="startCrawling(' + i + ')">Crawl</button>';
+                    cells[8] = 'Not started';
+                    addRow('tableAirport', cells);
+                }
+            }
+            async function getAirportsForCrawling() {
                 var xmlHttp = getXmlHttpObject();
                 if (xmlHttp === null) {
                     alert("Your Browser not support AJAX");
                     return;
                 }
-                var url = "http://localhost:8080/Final_Project_WebService/airport";
+                var url = "http://localhost:8080/Final_Project_WebService/airport/crawl";
+                xmlHttp.onreadystatechange = function () {
+                    if (this.readyState === 4 && this.status === 200) {
+                        var parser = new DOMParser();
+                        var xmlDOM = parser.parseFromString(this.responseText, "application/xml");
+                        addAirports(xmlDOM, crawlAirports);
+                        addAirportsToTable();
+                    }
+                };
+                xmlHttp.open("GET", url, true);
+                xmlHttp.send(null);
+            }
+            async function getAllAirports() {
+                var xmlHttp = getXmlHttpObject();
+                if (xmlHttp === null) {
+                    alert("Your Browser not support AJAX");
+                    return;
+                }
+                var url = "http://localhost:8080/Final_Project_WebService/airport/all";
                 xmlHttp.onreadystatechange = function () {
                     if (this.readyState === 4 && this.status === 200) {
                         var parser = new DOMParser();
                         var xmlString = this.responseText;
-                        var xmlString = xmlString.replace("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>", "")
-                        xmlDOM = parser.parseFromString(this.responseText, "application/xml");
-                        //var a = getNodeValue("iataCode", xmlDOM);
-                        //var airports = getElementsByXPath("//airport[descendant::iataCode[text()='AAL']]", xmlDOM);
-                        var airportDoms = getElementsByXPath("//airport", xmlDOM);
-                        for (var i = 0; i < airportDoms.length; i++) {
-                            var airportDom = parser.parseFromString(airportDoms[i].outerHTML, "application/xml");
-                            var airport = {
-                                city: getElementsByXPath("//city", airportDom)[0].firstChild.nodeValue,
-                                continent: getElementsByXPath("//continent", airportDom)[0].firstChild.nodeValue,
-                                country: {
-                                    code: getElementsByXPath("//country/code", airportDom)[0].firstChild.nodeValue,
-                                    continent: getElementsByXPath("//country/continent", airportDom)[0].firstChild.nodeValue,
-                                    countryTravelCost: {
-                                        costCheap: getElementsByXPath("//countryTravelCost/costCheap", airportDom)[0].firstChild.nodeValue,
-                                        costHigh: getElementsByXPath("//countryTravelCost/costHigh", airportDom)[0].firstChild.nodeValue,
-                                        costMedium: getElementsByXPath("//countryTravelCost/costMedium", airportDom)[0].firstChild.nodeValue
-                                    },
-                                    name: getElementsByXPath("//country/name", airportDom)[0].firstChild.nodeValue
-                                },
-                                iataCode: getElementsByXPath("//iataCode", airportDom)[0].firstChild.nodeValue,
-                                name: getElementsByXPath("//name", airportDom)[0].firstChild.nodeValue,
-                                type: getElementsByXPath("//type", airportDom)[0].firstChild.nodeValue
-                            };
-                            airports.push(airport);
-                        }
-                        for (var i = 0; i < airports.length; i++) {
-                            var cells = [];
-                            cells[0] = i;
-                            cells[1] = airports[i].iataCode;
-                            cells[2] = airports[i].name;
-                            cells[3] = airports[i].city;
-                            cells[4] = airports[i].country.code;
-                            cells[5] = airports[i].country.name;
-                            cells[6] = airports[i].continent;
-                            cells[7] = '<button type="button" id="crawl-btn-' + i + '" class="btn btn-primary" onclick="startCrawling(' + i + ')">Crawl</button>';
-                            cells[8] = 'Not started';
-                            addRow('tableAirport', cells);
-                        }
+                        xmlString = xmlString.replace("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>", "");
+                        var xmlDOM = parser.parseFromString(this.responseText, "application/xml");
+                        addAirports(xmlDOM, airports);
                     }
                 };
                 xmlHttp.open("GET", url, true);
                 xmlHttp.send(null);
             }
             async function startCrawling(i) {
-
-
-                destination = airports[i].iataCode;
+                destination = crawlAirports[i].iataCode;
                 var today = new Date();
-                for (var j = 1; j < 14; j++) {
+                for (var j = 1; j < 7; j++) {
                     var date = new Date(today.getTime() + j * 24 * 60 * 60 * 1000);
                     var dd = String(date.getDate()).padStart(2, '0');
                     var mm = String(date.getMonth() + 1).padStart(2, '0');
                     var yyyy = date.getFullYear();
                     date = yyyy + '-' + mm + '-' + dd;
                     var url = "http://localhost:2000/https://skiplagged.com/api/search.php?from=SGN&to=" + destination + "&depart=" + date + "&return=&format=v3";
+                    getResult(url);
+                    url = "http://localhost:2000/https://skiplagged.com/api/search.php?from=" + destination + "&to=SGN&depart=" + date + "&return=&format=v3";
                     getResult(url);
                 }
                 var tableElement = document.getElementById("tableAirport").getElementsByTagName('tbody')[0];
@@ -214,25 +249,80 @@ and open the template in the editor.
                         var prices = jsonObject.itineraries.outbound;
                         var airlines = jsonObject.airlines;
                         airlines = fixAirlines(airlines);
-                        flights = fixFlights(flights, prices);
-                        if (airlines.airlines.airline.length === 0 || flights.flights.flight.length === 0) {
-                            validResult = false;
+
+                        if (airlines.length === 0) {
                             return;
                         }
+                        flights = fixFlights(flights, prices);
                         var xmlFlights = OBJtoXML(flights);
-                        var xmlAirlines = OBJtoXML(airlines);
-                        result = {
-                            root: {
-                                xmlFlights: xmlFlights,
-                                xmlAirlines: xmlAirlines}
+                        var segments = [];
+                        for (var i = 0; i < flights.flights.flight.length; i++) {
+                            for (var j = 0; j < flights.flights.flight[i].segment.length; j++) {
+                                segments.push(flights.flights.flight[i].segment[j]);
+                            }
+                        }
+                        var filteredSegments = [];
+                        for (var i = 0; i < segments.length; i++) {
+                            var tmpSegment = segments[i];
+                            if (filteredSegments.length !== 0) {
+                                var found = false;
+                                for (var j = 0; j < filteredSegments.length; j++) {
+                                    var tmp = filteredSegments[j];
+                                    if (tmpSegment.airlineCode.airlineCode === tmp.airlineCode.airlineCode
+                                            && tmpSegment.flightNumber === tmp.flightNumber
+                                            && tmpSegment.arrival.city === tmp.arrival.city
+                                            && tmpSegment.departure.city === tmp.departure.city
+                                            && tmpSegment.arrivalTime === tmp.arrivalTime
+                                            && tmpSegment.departureTime === tmp.departureTime) {
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                                if (!found) {
+                                    filteredSegments.push(tmpSegment);
+                                }
+                            } else {
+                                filteredSegments.push(tmpSegment);
+                            }
+                        }
+
+                        var resultFlight = {
+                            xmlFlights: xmlFlights
+
                         };
-                        result = OBJtoXML(result);
-                        results.push(result);
-                        insertFlights();
+                        for (var i = 0; i < airlines.length; i++) {
+                            insertAirlines(OBJtoXML(airlines[i]));
+                        }
+                        for (var i = 0; i < filteredSegments.length; i++) {
+                            var tmp = {
+                                segment: filteredSegments[i]
+                            };
+                            insertSegments(OBJtoXML(tmp));
+
+                        }
+
+                        resultFlight = OBJtoXML(resultFlight);
+                        resultFlights.push(resultFlight);
+//                        insertAirlines();
+//                        insertSegments();
                     }
                 };
                 xmlHttp.open("GET", url, true);
                 xmlHttp.send(null);
+            }
+            async function insertAirlines(xml) {
+                var xmlHttp = getXmlHttpObject();
+                if (xmlHttp === null) {
+                    alert("Your Browser not support AJAX");
+                    return;
+                }
+                xmlHttp.onreadystatechange = function () {
+
+
+                }
+                xmlHttp.open("POST", "http://localhost:8080/Final_Project_WebService/airline", true);
+                xmlHttp.send(xml);
+
             }
             async function insertFlights() {
                 var xmlHttp = getXmlHttpObject();
@@ -240,9 +330,33 @@ and open the template in the editor.
                     alert("Your Browser not support AJAX");
                     return;
                 }
+                xmlHttp.onreadystatechange = function () {
+                    flightInserted++;
+                    var countLine = document.getElementById("flightCount").innerHTML = flightInserted + " flight(s) inserted."
+
+                }
                 xmlHttp.open("POST", "http://localhost:8080/Final_Project_WebService/flight", true);
-                var xml = results.shift();
+                var xml = resultFlights.shift();
                 xmlHttp.send(xml);
+
+            }
+            async function executeAllFlights() {
+                while (resultFlights.length !== 0) {
+                    insertFlights();
+                }
+            }
+            function insertSegments(xml) {
+                var xmlHttp = getXmlHttpObject();
+                if (xmlHttp === null) {
+                    alert("Your Browser not support AJAX");
+                    return;
+                }
+                xmlHttp.onreadystatechange = function () {
+
+                }
+                xmlHttp.open("POST", "http://localhost:8080/Final_Project_WebService/segment", false);
+                xmlHttp.send(xml);
+
             }
             function fixFlights(obj, prices) {
                 var flights = {
@@ -257,16 +371,24 @@ and open the template in the editor.
                             price = prices[item].one_way_price;
                         }
                     }
+                    var departure, arrival;
                     var count = obj[prop].count - 1;
+                    for (var item in airports) {
+                        if (obj[prop].segments[0].departure.airport === airports[item].iataCode) {
+                            departure = airports[item];
+                        } else if (obj[prop].segments[count].arrival.airport === airports[item].iataCode) {
+                            arrival = airports[item];
+                        }
+                    }
                     var flight = {
-                        flight: prop,
+                        flightId: null,
                         departureDate: obj[prop].segments[0].departure.time.split("T")[0],
-                        arrivalDate: obj[prop].segments[count].departure.time.split("T")[0],
+                        arrivalDate: obj[prop].segments[count].arrival.time.split("T")[0],
                         duration: obj[prop].duration,
                         price: price,
-                        departure: obj[prop].segments[0].departure.airport,
-                        arrival: obj[prop].segments[count].departure.airport,
-                        segments: obj[prop].segments
+                        departure: departure,
+                        arrival: arrival,
+                        segment: fixSegments(obj[prop].segments)
 
                     };
                     flights.flights.flight.push(flight);
@@ -274,37 +396,68 @@ and open the template in the editor.
                 return flights;
             }
             function fixAirlines(obj) {
-                var airlines = {
-                    airlines: {
-                        airline: []
-                    }
-                };
+                var airlines = [];
                 for (var prop in obj) {
                     var airline = {
-                        code: prop,
-                        name: obj[prop].name
+                        airline: {
+                            airlineCode: prop,
+                            name: obj[prop].name}
                     };
-                    airlines.airlines.airline.push(airline);
+                    airlines.push(airline);
                 }
                 return airlines;
+            }
+            function fixSegments(obj) {
+                var segment = [];
+                for (var item in obj) {
+                    var departure, arrival;
+                    for (var i in airports) {
+                        if (obj[item].departure.airport === airports[i].iataCode) {
+                            departure = airports[i];
+                        } else if (obj[item].arrival.airport === airports[i].iataCode) {
+                            arrival = airports[i];
+                        }
+                    }
+                    var tmp = {
+                        segmentId: null,
+                        flightNumber: obj[item].flight_number,
+                        departureTime: obj[item].departure.time,
+                        arrivalTime: obj[item].arrival.time,
+                        duration: obj[item].duration,
+                        position: item,
+                        airlineCode: {
+                            airlineCode: obj[item].airline,
+                            name: null
+                        },
+                        departure: departure,
+                        arrival: arrival,
+                        flightList: null
+
+                    };
+                    if (typeof tmp.arrival === 'undefined') {
+                        console.log("");
+                    }
+                    segment.push(tmp);
+                }
+                return segment;
             }
 
             function OBJtoXML(obj) {
                 var xml = '';
                 for (var prop in obj) {
-                    xml += obj[prop] instanceof Array ? '' : "<" + prop + ">\n";
+                    xml += obj[prop] instanceof Array ? '' : "<" + prop + ">";
                     if (obj[prop] instanceof Array) {
                         for (var array in obj[prop]) {
-                            xml += "<" + prop + ">\n";
+                            xml += "<" + prop + ">";
                             xml += OBJtoXML(new Object(obj[prop][array]));
-                            xml += "</" + prop + ">\n";
+                            xml += "</" + prop + ">";
                         }
                     } else if (typeof obj[prop] === "object") {
                         xml += OBJtoXML(new Object(obj[prop]));
                     } else {
-                        xml += obj[prop] + "\n";
+                        xml += obj[prop];
                     }
-                    xml += obj[prop] instanceof Array ? '' : "</" + prop + ">\n";
+                    xml += obj[prop] instanceof Array ? '' : "</" + prop + ">";
                 }
                 //                var xml = xml.replace(/<\/?[0-9]{1,}>/g, '');
                 return xml;
@@ -321,11 +474,18 @@ and open the template in the editor.
                 }
 
             }
-            window.onload = getAirports;
+            window.onload = function () {
+                getAirportsForCrawling();
+                getAllAirports();
+            }
+
         </script>
     </head>
     <body>
         <h3 class="text-primary text-center">Flight Crawler</h3>
+        <div id="flightCount" class="alert alert-primary" role="alert" style="width: 200px; margin-left: 20px">
+            0 flight(s) inserted.
+        </div>
         <div class="table-wrapper-scroll-y my-custom-scrollbar" style="margin: 10px">
 
             <table id="tableAirport" class="table table-bordered table-striped mb-0 table-hover">
@@ -370,6 +530,9 @@ and open the template in the editor.
             <div class="row">
                 <div class="col text-center">
                     <button type="button" class="btn btn-primary btn-lg btn-block bg-success" onclick="startCrawler()">Crawl 5 each</button>
+                </div>
+                <div class="col text-center">
+                    <button type="button" class="btn btn-primary btn-lg btn-block bg-primary" onclick="executeAllFlights()">Insert all flights</button>
                 </div>
             </div>
         </div>

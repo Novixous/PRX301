@@ -11,8 +11,8 @@ import java.util.List;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Response;
 import webservice.daos.AirportDAO;
+import webservice.daos.GenericDAO;
 import webservice.dtos.Airport;
 
 /**
@@ -22,6 +22,7 @@ import webservice.dtos.Airport;
 @Path("/airport")
 public class AirportService {
 
+    @Path("/crawl")
     @GET
     @Produces("application/xml")
     public List<Airport> getAirportListForCrawler() {
@@ -29,7 +30,16 @@ public class AirportService {
         return airportDAO.getAirportsForCrawler();
 
     }
-    
+
+    @Path("/all")
+    @GET
+    @Produces("application/xml")
+    public List<Airport> getAllAirports() {
+        GenericDAO<Airport> genericDAO = new GenericDAO<>();
+        genericDAO.setType(Airport.class);
+        return genericDAO.findAll();
+    }
+
     private String toJson(Object entity) {
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd HH:mm:ss.SSS zzz")

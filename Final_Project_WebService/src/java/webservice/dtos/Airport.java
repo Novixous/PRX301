@@ -6,7 +6,7 @@
 package webservice.dtos;
 
 import java.io.Serializable;
-import java.util.Collection;
+import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -56,16 +56,16 @@ public class Airport implements Serializable {
     @Column(name = "type")
     private Integer type;
     @OneToMany(mappedBy = "departure")
-    private Collection<Flights> flightsCollection;
+    private List<Flight> flightList;
     @OneToMany(mappedBy = "arrival")
-    private Collection<Flights> flightsCollection1;
+    private List<Flight> flightList1;
     @JoinColumn(name = "country", referencedColumnName = "Code")
-    @ManyToOne()
+    @ManyToOne
     private Country country;
     @OneToMany(mappedBy = "departure")
-    private Collection<Segments> segmentsCollection;
+    private List<Segment> segmentList;
     @OneToMany(mappedBy = "arrival")
-    private Collection<Segments> segmentsCollection1;
+    private List<Segment> segmentList1;
 
     public Airport() {
     }
@@ -115,21 +115,21 @@ public class Airport implements Serializable {
     }
 
     @XmlTransient
-    public Collection<Flights> getFlightsCollection() {
-        return flightsCollection;
+    public List<Flight> getFlightList() {
+        return flightList;
     }
 
-    public void setFlightsCollection(Collection<Flights> flightsCollection) {
-        this.flightsCollection = flightsCollection;
+    public void setFlightList(List<Flight> flightList) {
+        this.flightList = flightList;
     }
 
     @XmlTransient
-    public Collection<Flights> getFlightsCollection1() {
-        return flightsCollection1;
+    public List<Flight> getFlightList1() {
+        return flightList1;
     }
 
-    public void setFlightsCollection1(Collection<Flights> flightsCollection1) {
-        this.flightsCollection1 = flightsCollection1;
+    public void setFlightList1(List<Flight> flightList1) {
+        this.flightList1 = flightList1;
     }
 
     public Country getCountry() {
@@ -141,21 +141,21 @@ public class Airport implements Serializable {
     }
 
     @XmlTransient
-    public Collection<Segments> getSegmentsCollection() {
-        return segmentsCollection;
+    public List<Segment> getSegmentList() {
+        return segmentList;
     }
 
-    public void setSegmentsCollection(Collection<Segments> segmentsCollection) {
-        this.segmentsCollection = segmentsCollection;
+    public void setSegmentList(List<Segment> segmentList) {
+        this.segmentList = segmentList;
     }
 
     @XmlTransient
-    public Collection<Segments> getSegmentsCollection1() {
-        return segmentsCollection1;
+    public List<Segment> getSegmentList1() {
+        return segmentList1;
     }
 
-    public void setSegmentsCollection1(Collection<Segments> segmentsCollection1) {
-        this.segmentsCollection1 = segmentsCollection1;
+    public void setSegmentList1(List<Segment> segmentList1) {
+        this.segmentList1 = segmentList1;
     }
 
     @Override
@@ -182,5 +182,5 @@ public class Airport implements Serializable {
     public String toString() {
         return "webservice.dtos.Airport[ iataCode=" + iataCode + " ]";
     }
-
+    
 }

@@ -37,7 +37,7 @@ public class StudentDTO implements Serializable {
    
 
     public StudentDTO() {
-
+((NodeList) xPath.evaluate("segment", flightNodes.item(i), XPathConstants.NODESET)).getLength();
     }
 
     public String getId() {

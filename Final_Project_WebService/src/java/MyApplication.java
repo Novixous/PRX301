@@ -4,7 +4,9 @@ import java.util.Set;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 import webservice.services.AirportService;
+import webservice.services.AirlineService;
 import webservice.services.FlightService;
+import webservice.services.SegmentService;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -22,7 +24,9 @@ public class MyApplication extends Application {
     public Set<Class<?>> getClasses() {
         HashSet h = new HashSet<>();
         h.add(AirportService.class);
+        h.add(AirlineService.class);
         h.add(FlightService.class);
+        h.add(SegmentService.class);
         return h;
     }
 
