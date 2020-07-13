@@ -216,24 +216,33 @@ and open the template in the editor.
                 xmlHttp.send(null);
             }
             async function startCrawling(i) {
-                destination = crawlAirports[i].iataCode;
+                var destination = crawlAirports[i].iataCode;
+//                var start = crawlAirports[i].iataCode;
                 var today = new Date();
-                for (var j = 1; j < 7; j++) {
+                for (var j = 0; j < 6; j++) {
                     var date = new Date(today.getTime() + j * 24 * 60 * 60 * 1000);
                     var dd = String(date.getDate()).padStart(2, '0');
                     var mm = String(date.getMonth() + 1).padStart(2, '0');
                     var yyyy = date.getFullYear();
                     date = yyyy + '-' + mm + '-' + dd;
+//                    for (var k = 0; k < crawlAirports.length; k++) {
+//                    var destination = crawlAirports[k].iataCode;
                     var url = "http://localhost:2000/https://skiplagged.com/api/search.php?from=SGN&to=" + destination + "&depart=" + date + "&return=&format=v3";
                     getResult(url);
                     url = "http://localhost:2000/https://skiplagged.com/api/search.php?from=" + destination + "&to=SGN&depart=" + date + "&return=&format=v3";
                     getResult(url);
+//                        if (start !== destination) {
+//                            var url = "http://localhost:2000/https://skiplagged.com/api/search.php?from=" + start + "&to=" + destination + "&depart=" + date + "&return=&format=v3";
+//                            getResult(url);
+//                        }
+//                }
+
                 }
                 var tableElement = document.getElementById("tableAirport").getElementsByTagName('tbody')[0];
                 var cell = tableElement.rows[i].cells[8];
                 cell.style.color = "Blue";
                 cell.innerHTML = 'Crawling';
-                var btn = document.getElementById("crawl-btn-" + i).disabled = true;
+                document.getElementById("crawl-btn-" + i).disabled = true;
 
             }
             async function getResult(url) {
@@ -303,8 +312,6 @@ and open the template in the editor.
 
                         resultFlight = OBJtoXML(resultFlight);
                         resultFlights.push(resultFlight);
-//                        insertAirlines();
-//                        insertSegments();
                     }
                 };
                 xmlHttp.open("GET", url, true);

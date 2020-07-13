@@ -117,7 +117,6 @@ public class Flight implements Serializable {
         this.price = price;
     }
 
-    @XmlTransient
     public List<Segment> getSegmentList() {
         return segmentList;
     }

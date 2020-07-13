@@ -7,13 +7,19 @@ package webservice.services;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import webservice.daos.AirportDAO;
 import webservice.daos.GenericDAO;
 import webservice.dtos.Airport;
+import webservice.dtos.AirportArrivalCount;
+import webservice.utils.StatisticUtils;
 
 /**
  *
@@ -24,7 +30,7 @@ public class AirportService {
 
     @Path("/crawl")
     @GET
-    @Produces("application/xml")
+    @Produces(MediaType.APPLICATION_XML)
     public List<Airport> getAirportListForCrawler() {
         AirportDAO airportDAO = new AirportDAO();
         return airportDAO.getAirportsForCrawler();
@@ -33,21 +39,22 @@ public class AirportService {
 
     @Path("/all")
     @GET
-    @Produces("application/xml")
+    @Produces(MediaType.APPLICATION_XML)
     public List<Airport> getAllAirports() {
         GenericDAO<Airport> genericDAO = new GenericDAO<>();
         genericDAO.setType(Airport.class);
         return genericDAO.findAll();
     }
 
-    private String toJson(Object entity) {
-        Gson gson = new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd HH:mm:ss.SSS zzz")
-                .setPrettyPrinting()
-                .create();
-        String result = gson.toJson(entity);
-        return result.replace("\\\"", "");
+    @Path("/arrivalCounts")
+    @GET
+    @Produces(MediaType.APPLICATION_XML)
+    public List<AirportArrivalCount> getAirportArrivalCounts() {
+        AirportDAO airportDAO = new AirportDAO();
+        List<AirportArrivalCount> list = airportDAO.getCityArrivalCount(null);
+        return list;
     }
+
 //    @GET
 //    @Produces("application/json")
 //    public Response getAirportListForCrawler() {

@@ -9,6 +9,8 @@ import java.io.Serializable;
 import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.Column;
+import javax.persistence.ColumnResult;
+import javax.persistence.ConstructorResult;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -16,6 +18,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -36,6 +39,16 @@ import javax.xml.bind.annotation.XmlTransient;
     , @NamedQuery(name = "Airport.findByContinent", query = "SELECT a FROM Airport a WHERE a.continent = :continent")
     , @NamedQuery(name = "Airport.findByName", query = "SELECT a FROM Airport a WHERE a.name = :name")
     , @NamedQuery(name = "Airport.findByType", query = "SELECT a FROM Airport a WHERE a.type = :type")})
+@SqlResultSetMapping(
+        name = "AirportArrivalCountMapping",
+        classes = @ConstructorResult(
+                targetClass = AirportArrivalCount.class,
+                columns = {
+                    @ColumnResult(name = "arrivalCount", type = Long.class)
+                    ,
+                    @ColumnResult(name = "city", type = String.class)
+                    ,
+                    @ColumnResult(name = "country", type = String.class)}))
 public class Airport implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -182,5 +195,5 @@ public class Airport implements Serializable {
     public String toString() {
         return "webservice.dtos.Airport[ iataCode=" + iataCode + " ]";
     }
-    
+
 }
