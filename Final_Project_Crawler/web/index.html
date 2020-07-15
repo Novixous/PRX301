@@ -1,52 +1,497 @@
-<!DOCTYPE html>
-<!--
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
--->
 <html>
     <head>
-        <title>TODO supply a title</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <script src="jquery.min.js"></script>
         <link rel="stylesheet" href="bootstrap.min.css">
+        <link href="css/font-awesome.min.css" rel="stylesheet">
+        <script src="gijgo.min.js" type="text/javascript"></script>
+        <link href="gijgo.min.css" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+        <title>Setup your travel</title>
         <style>
-            .my-custom-scrollbar {
+            label {
+                width: 100%;
+                font-size: 1rem;
+            }
+
+            .card-input-element+.card {
+                height: calc(36px + 2*1rem);
+                color:  var(--primary);
+                -webkit-box-shadow: none;
+                box-shadow: none;
+                border: 2px solid transparent;
+                border-radius: 4px;
+            }
+
+            .card-input-element+.card:hover {
+                cursor: pointer;
+            }
+
+            .card-input-element:checked+.card {
+                border: 2px solid var(--primary);
+                -webkit-transition: border .3s;
+                -o-transition: border .3s;
+                transition: border .3s;
+            }
+
+            .card-input-element:checked+.card::after {
+                content: '\e5ca';
+                color: #AFB8EA;
+                font-family: 'Material Icons';
+                font-size: 24px;
+                -webkit-animation-name: fadeInCheckbox;
+                animation-name: fadeInCheckbox;
+                -webkit-animation-duration: .5s;
+                animation-duration: .5s;
+                -webkit-animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+                animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+
+
+            .jumbotron{
+                background-color: #ed969e;
+                margin-left: 15%;
+                margin-right: 15%;
+            }
+
+            @-webkit-keyframes fadeInCheckbox {
+                from {
+                    opacity: 0;
+                    -webkit-transform: rotateZ(-20deg);
+                }
+                to {
+                    opacity: 1;
+                    -webkit-transform: rotateZ(0deg);
+                }
+            }
+
+            @keyframes fadeInCheckbox {
+                from {
+                    opacity: 0;
+                    transform: rotateZ(-20deg);
+                }
+                to {
+                    opacity: 1;
+                    transform: rotateZ(0deg);
+                }
+            }
+            /* fallback */
+            @font-face {
+                font-family: 'Material Icons';
+                font-style: normal;
+                font-weight: 400;
+                src: url(https://fonts.gstatic.com/s/materialicons/v53/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
+            }
+
+            .material-icons {
+                font-family: 'Material Icons';
+                font-weight: normal;
+                font-style: normal;
+                font-size: 24px;
+                line-height: 1;
+                letter-spacing: normal;
+                text-transform: none;
+                display: inline-block;
+                white-space: nowrap;
+                word-wrap: normal;
+                direction: ltr;
+                -webkit-font-feature-settings: 'liga';
+                -webkit-font-smoothing: antialiased;
+            }
+            .span9 {
+                width: 70%;
+                *width: 74.41489361702126%;
+            }
+            p{
+                color: white!important;
+                font-weight: bolder!important;
+            }
+            #myCarousel .btn{
+                background-color: #ffffff;
+            }
+            #myCarousel .btn:hover{
+                background-color: #505050;
+            }
+            .trip {
+                border: solid 1px #e0e0e0;
+                margin-bottom: -1px;
+                cursor: pointer;
                 position: relative;
-                height: 600px;
-                overflow: auto;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                height: 100px;
+                box-sizing: border-box;
+                display: flex;
+                align-items: center;
+                background-color: #fff;
             }
-            .table-wrapper-scroll-y {
-                display: block;
+            .trip:not(.no-touch):hover {
+                border: solid 1px #bfbfbf;
             }
-            .table-striped> tbody >tr:nth-child(odd){
-                background-color:#d9edf7;
+            .trip>div {
+                min-height: 0 !important;
             }
-            .table-striped>tbody>tr:nth-child(even){
-                background-color: #f2dede;
+            .trip-list {
+                clear: both;
+                list-style: none;
+                margin: 0;
+                position: relative;
             }
-            .table-striped> thead>tr{
-                background-color:#fff3b7;
+            .trip-path {
+                height: 100%;
+                display: flex;
+                align-items: center;
+                flex-grow: 1;
+                margin-right: 20px;
             }
+            .trip-path-point {
+
+                display: inline-block;
+                width: 100%;
+            }
+            .trip-path-point-time {
+                font-size: 20px;
+                font-weight: 500;
+                color: #4e4e4e;
+            }
+            .trip-path-point-airport {
+                font-weight: 300;
+                color: #505050;
+                position: absolute;
+                line-height: normal;
+            }
+            .airport-code{
+                top:10px;
+                position: absolute;
+            }
+            .trip:not(.no-touch):hover .airport-code {
+                display: none;
+            }
+            .truncate {
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
+            }
+            .trip:not(.no-touch):hover .airport-city {
+                display: inline-block;
+                text-decoration: inherit;
+            }
+
+
+            .airport-city {
+
+                display: none;
+                position: absolute;
+                top: 10px;
+                white-space: nowrap;
+            }
+
+            .trip-duration {
+                font-size: 24px;
+                font-weight: 500;
+                color: #6f6f6f;
+                text-align: right;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                min-width: 90px;
+                width: 90px;
+                justify-content: center;
+                position: relative;
+                flex-direction: column;
+            }
+
+            .trip-stops {
+                font-size: 12px;
+                font-weight: 300;
+                color: #505050;
+            }
+            .trip-path-spacer {
+                display: inline-block;
+                vertical-align: top;
+                position: relative;
+                margin: 0 5px;
+                min-width: 35px;
+            }
+            .trip:not(.no-touch):hover .trip-path .trip-path-spacer {
+                width: 100% !important;
+                transition: width .5s ease-in;
+            }
+
+            .trip-path-spacer-label {
+                text-align: center;
+                font-size: 10px;
+                color: #767676;
+                height: 8px;
+                vertical-align: top;
+                opacity: 0;
+                position: absolute;
+                margin-left: 1px;
+                width: 100%;
+                font-weight: 500;
+                white-space: nowrap;
+            }
+            .trip:not(.no-touch):hover .trip-path-spacer-label {
+                opacity: 1;
+            }
+            .trip-path-spacer .trip-path-point-airport {
+                width: 100%;
+                text-align: center;
+                top: 15px;
+                font-size: 12px;
+                color: #505050;
+                font-weight: 500;
+                display: flex;
+                justify-content: center;
+            }
+            .trip-path-spacer-arrow-wrapper {
+                position: relative;
+                display: table;
+            }
+            .trip-path-spacer-line {
+                overflow: hidden;
+                display: table-cell;
+                word-break: break-all;
+            }
+            .trip-path-spacer-line>div {
+                border-bottom: 2px solid #c2c9d7;
+            }
+            .trip-path-spacer-arrow-layover>.trip-path-spacer-line>div {
+                border-bottom: 2px dashed #cecece;
+            }
+
+            .trip-path-point-airport-demp {
+                position: relative;
+                max-width: 5px;
+                min-width: 5px;
+                width: 5px;
+                height: 5px;
+                box-sizing: border-box;
+                border-radius: 5px;
+                border: solid 1px #757e8e;
+                background-color: #757e8e;
+            }
+            .trip-path-point-airport-demp .trip-path-point-time {
+                position: absolute;
+                bottom: calc(100% + 7px);
+                left: 50%;
+                transform: translateX(-50%);
+                opacity: 0;
+            }
+            .trip:not(.no-touch):not(.selected-trip):hover .trip-path-point-airport-demp>.trip-path-point-time {
+                line-height: inherit;
+            }
+            .trip:not(.no-touch):hover .trip-path-point-airport-demp>.trip-path-point-time {
+                opacity: 1;
+            }
+            .trip-path-point-airport-demp.same-layover .trip-path-point-airport {
+                display: none;
+            }
+            .trip-path-point-airport-demp .trip-path-point-airport {
+                top: 15px;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+            /*            .trip-cost{
+                            display: flex;
+                        }*/
+
+            .trip-cost>p {
+                font-size: 24px;
+                font-weight: 500;
+                letter-spacing: -1.2px;
+                color: #434343!important;
+                padding: 10px 0 0 0;
+                margin: 0 0 10px;
+            }
+            .trip-cost{
+                text-align: center;
+                min-width: 90px;
+                margin-left: 0;
+                width: auto;
+                display: flex;
+                align-items: center;
+                padding-left: 10px;
+                padding-right: 10px;
+                height: 100%;
+                flex-direction: column;
+                justify-content: center;
+            }
+            .card p{
+                color: #434343!important;
+            }
+
+            .bookingContainer{
+                margin-top: -100px;
+                margin-bottom: 150px;
+            }
+
+
         </style>
-        <script type="text/javascript">
-            var continent = [];
-            continent[0] = "Africa";
-            continent[1] = "Antarctica";
-            continent[2] = "Asia";
-            continent[3] = "Europe";
-            continent[4] = "North America";
-            continent[5] = "Oceania";
-            continent[6] = "South America";
-            var flightInserted = 0;
-            var airports = [];
-            var crawlAirports = [];
-            var resultAirlines = [];
-            var resultFlights = [];
-            var resultSegments = [];
-            var validResult = true;
-            var current = 0;
-            var pendingConnections = 0;
+        <script>
+
+
+
+            var fullname = "";
+            var username = "";
+            var role = 0;
+            var departureFlight;
+            var returnFlight;
+            var returnFlight;
+            var currentQuestion = 0;
+            var peopleCount = 0;
+            var dayCount = 0;
+            var dateDeparture;
+            var costWeight;
+            var timeWeight;
+            var mostArrivalWeight;
+            var layoverWeight;
+            function setCookie(cname, cvalue, exdays) {
+                var d = new Date();
+                d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+                var expires = "expires=" + d.toUTCString();
+                document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+            }
+            function getCookie(cname) {
+                var name = cname + "=";
+                var decodedCookie = decodeURIComponent(document.cookie);
+                var ca = decodedCookie.split(';');
+                for (var i = 0; i < ca.length; i++) {
+                    var c = ca[i];
+                    while (c.charAt(0) == ' ') {
+                        c = c.substring(1);
+                    }
+                    if (c.indexOf(name) == 0) {
+                        return c.substring(name.length, c.length);
+                    }
+                }
+                return "";
+            }
+            function login() {
+                var loginUsername = document.getElementById("loginUsername").value;
+                var loginPassword = document.getElementById("loginPassword").value;
+                var rememberCheck = document.getElementById("rememberCheck").checked;
+                var xmlHttp = getXmlHttpObject();
+                if (xmlHttp === null) {
+                    alert("Your Browser not support AJAX");
+                    return;
+                }
+                var url = "http://localhost:8080/Final_Project_WebService/user?username=" + loginUsername + "&password=" + loginPassword;
+                if (rememberCheck == true) {
+                    xmlHttp.onreadystatechange = function () {
+                        if (this.readyState === 4 && this.status === 200) {
+                            var parser = new DOMParser();
+                            var xmlDOM = parser.parseFromString(this.responseText, "application/xml");
+                            username = getElementsByXPath("//username", xmlDOM)[0].firstChild.nodeValue;
+                            role = getElementsByXPath("//role", xmlDOM)[0].firstChild.nodeValue;
+                            fullname = getElementsByXPath("//fullName", xmlDOM)[0].firstChild.nodeValue;
+                            if (role === 1) {
+                                document.getElementById("adminBtn").style.visibility = "visible";
+                            }
+                            setCookie("username", username, 7);
+                            setCookie("role", role, 7);
+                            setCookie("fullname", fullname, 7);
+
+                            document.getElementById("welcome").innerHTML = "Welcome back " + fullname;
+                            document.getElementById("loginCloseBtn").click();
+                            window.location.reload(true);
+
+                        } else if (this.readyState === 4 && this.status === 204) {
+                            document.getElementById("loginAlert").style.display = "block";
+                        }
+                    };
+                } else {
+                    xmlHttp.onreadystatechange = function () {
+                        if (this.readyState === 4 && this.status === 200) {
+                            var parser = new DOMParser();
+                            var xmlDOM = parser.parseFromString(this.responseText, "application/xml");
+                            username = getElementsByXPath("//khanglna", xmlDOM)[0].firstChild.nodeValue;
+                            role = getElementsByXPath("//role", xmlDOM)[0].firstChild.nodeValue;
+                            if (role === 1) {
+                                document.getElementById("adminBtn").style.visibility = "visible";
+                            }
+                            fullname = getElementsByXPath("//fullName")[0].firstChild.nodeValue;
+                            document.getElementById("welcome").innerHTML = "Welcome back " + fullname;
+                            document.getElementById("loginCloseBtn").click();
+
+                        } else if (this.readyState === 4 && this.status === 204) {
+                            document.getElementById("loginAlert").style.display = "block";
+                        }
+                    }
+                }
+                xmlHttp.open("GET", url, true);
+                xmlHttp.send(null);
+            }
+            function delete_cookie(name) {
+                document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+            }
+            function nextQuestion() {
+                var items = document.getElementsByClassName("carousel-item");
+                switch (currentQuestion) {
+                    case 0:
+                        var count = document.getElementById("peopleCount").value;
+                        if (count <= 0 || count === "") {
+                            document.getElementById("countAlert").style.display = "block";
+                            return;
+                        }
+                        peopleCount = count;
+                        break;
+                    case 1:
+                        var count = document.getElementById("dayCount").value;
+                        if (count <= 0 || count === "") {
+                            document.getElementById("peopleCountAlert").style.display = "block";
+                            return;
+                        }
+                        dayCount = count;
+                        break;
+                    case 2:
+                        var date = $('#startDate').val();
+                        if (date === "") {
+                            document.getElementById("dayAlert").style.display = "block";
+                            return;
+                        }
+                        dateDeparture = date;
+                        break;
+                    default:
+
+                        break;
+                }
+                currentQuestion++;
+                if (items.length !== currentQuestion) {
+                    $("#myCarousel").carousel(currentQuestion);
+                    var heading = document.getElementById("heading");
+                    heading.style.display = "none";
+                } else {
+                    document.getElementById("myCarousel").style.display = "None";
+                    document.getElementById("flightsContainer").style.display = "Block";
+                    getSuitableFlight(false);
+                }
+
+            }
+
+            function costSurvey(value) {
+                costWeight = ++value;
+                nextQuestion();
+            }
+
+            function timeSurvey(value) {
+                timeWeight = ++value;
+                nextQuestion();
+            }
+
+            function mostArrivalSurvey(value) {
+                mostArrivalWeight = ++value;
+                nextQuestion();
+            }
+
+            function layoverSurvey(value) {
+                layoverWeight = ++value;
+                nextQuestion();
+            }
+
             function getXmlHttpObject() {
                 var xmlHttp = null;
                 try {// firefox, opera 8.0+, safari
@@ -60,73 +505,6 @@ and open the template in the editor.
                 }
                 return xmlHttp;
             }
-            function sleep(milliseconds) {
-                var start = new Date().getTime();
-                for (var i = 0; i < 1e7; i++) {
-                    if ((new Date().getTime() - start) > milliseconds) {
-                        break;
-                    }
-                }
-            }
-            function addRow(tableId, cells) {
-                var tableElement = document.getElementById(tableId).getElementsByTagName('tbody')[0];
-                var newRow = tableElement.insertRow(tableElement.rows.length);
-                var newCell;
-                for (var i = 0; i < cells.length; i++) {
-                    newCell = newRow.insertCell(newRow.cells.length);
-                    newCell.innerHTML = cells[i];
-                    if (i === (cells.length - 1)) {
-                        newCell.style.color = "Grey";
-                        newCell.style.fontWeight = "bold";
-                    }
-                }
-                return newRow;
-            }
-            function deleteRow(tableId, rowNumber) {
-                var tableElement = document.getElementById(tableId);
-                if (rowNumber > 0 & rowNumber < tableElement.rows.length) {
-                    tableElement.deleteRow(rowNumber);
-                } else {
-                    alert("Failed");
-                }
-
-            }
-            function getNodeValue(nodeName, node) {
-                if (node === null) {
-                    return null;
-                }
-                if (node.tagName === nodeName) {
-                    return node.firstChild.nodeValue;
-                }
-                var temp = node.nextSibling;
-                if (temp !== null) {
-                    return getNodeValue(nodeName, temp);
-                }
-                var child = node.childNodes;
-                if (child !== null) {
-                    for (var i = 0; i < child.length; i++) {
-                        return getNodeValue(nodeName, child[i]);
-                    }
-                }
-            }
-            function getNodeValues(nodeName, node) {
-                if (node === null) {
-                    return null;
-                }
-                if (node.tagName === nodeName) {
-                    return node.firstChild.nodeValue;
-                }
-                var temp = node.nextSibling;
-                if (temp !== null) {
-                    return getNodeValue(nodeName, temp);
-                }
-                var child = node.childNodes;
-                if (child !== null) {
-                    for (var i = 0; i < child.length; i++) {
-                        return getNodeValue(nodeName, child[i]);
-                    }
-                }
-            }
             function getElementsByXPath(xpath, parent)
             {
                 let results = [];
@@ -136,283 +514,6 @@ and open the template in the editor.
                     results.push(query.snapshotItem(i));
                 }
                 return results;
-            }
-            function addAirports(xmlDOM, obj) {
-                var parser = new DOMParser();
-                var airportDoms = getElementsByXPath("//airport", xmlDOM);
-                for (var i = 0; i < airportDoms.length; i++) {
-                    var airportDom = parser.parseFromString(airportDoms[i].outerHTML, "application/xml");
-                    var airport = {
-                        city: getElementsByXPath("//city", airportDom)[0].firstChild.nodeValue,
-                        continent: getElementsByXPath("//continent", airportDom)[0].firstChild.nodeValue,
-                        country: {
-                            code: getElementsByXPath("//country/code", airportDom)[0].firstChild.nodeValue,
-                            continent: getElementsByXPath("//country/continent", airportDom)[0].firstChild.nodeValue,
-                            countryTravelCost: {
-                                costCheap: typeof getElementsByXPath("//countryTravelCost/costCheap", airportDom)[0] === 'undefined' ? null : getElementsByXPath("//countryTravelCost/costCheap", airportDom)[0].firstChild.nodeValue,
-                                costHigh: typeof getElementsByXPath("//countryTravelCost/costHigh", airportDom)[0] === 'undefined' ? null : getElementsByXPath("//countryTravelCost/costHigh", airportDom)[0].firstChild.nodeValue,
-                                costMedium: typeof getElementsByXPath("//countryTravelCost/costMedium", airportDom)[0] === 'undefined' ? null : getElementsByXPath("//countryTravelCost/costMedium", airportDom)[0].firstChild.nodeValue
-                            },
-                            name: getElementsByXPath("//country/name", airportDom)[0].firstChild.nodeValue
-                        },
-                        iataCode: getElementsByXPath("//iataCode", airportDom)[0].firstChild.nodeValue,
-                        name: getElementsByXPath("//airport/name", airportDom)[0].firstChild.nodeValue,
-                        type: getElementsByXPath("//type", airportDom)[0].firstChild.nodeValue
-                    };
-                    obj.push(airport);
-
-                }
-            }
-            function addAirportsToTable() {
-                for (var i = 0; i < crawlAirports.length; i++) {
-                    var cells = [];
-                    cells[0] = i;
-                    cells[1] = crawlAirports[i].iataCode;
-                    cells[2] = crawlAirports[i].name;
-                    cells[3] = crawlAirports[i].city;
-                    cells[4] = crawlAirports[i].country.code;
-                    cells[5] = crawlAirports[i].country.name;
-                    cells[6] = continent[crawlAirports[i].continent];
-                    cells[7] = '<button type="button" id="crawl-btn-' + i + '" class="btn btn-primary" onclick="startCrawling(' + i + ')">Crawl</button>';
-                    cells[8] = 'Not started';
-                    addRow('tableAirport', cells);
-                }
-            }
-            async function getAirportsForCrawling() {
-                var xmlHttp = getXmlHttpObject();
-                if (xmlHttp === null) {
-                    alert("Your Browser not support AJAX");
-                    return;
-                }
-                var url = "http://localhost:8080/Final_Project_WebService/airport/crawl";
-                xmlHttp.onreadystatechange = function () {
-                    if (this.readyState === 4 && this.status === 200) {
-                        var parser = new DOMParser();
-                        var xmlDOM = parser.parseFromString(this.responseText, "application/xml");
-                        addAirports(xmlDOM, crawlAirports);
-                        addAirportsToTable();
-                    }
-                };
-                xmlHttp.open("GET", url, true);
-                xmlHttp.send(null);
-            }
-            async function getAllAirports() {
-                var xmlHttp = getXmlHttpObject();
-                if (xmlHttp === null) {
-                    alert("Your Browser not support AJAX");
-                    return;
-                }
-                var url = "http://localhost:8080/Final_Project_WebService/airport/all";
-                xmlHttp.onreadystatechange = function () {
-                    if (this.readyState === 4 && this.status === 200) {
-                        var parser = new DOMParser();
-                        var xmlString = this.responseText;
-                        xmlString = xmlString.replace("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>", "");
-                        var xmlDOM = parser.parseFromString(this.responseText, "application/xml");
-                        addAirports(xmlDOM, airports);
-                    }
-                };
-                xmlHttp.open("GET", url, true);
-                xmlHttp.send(null);
-            }
-            async function startCrawling(i) {
-                var destination = crawlAirports[i].iataCode;
-//                var start = crawlAirports[i].iataCode;
-                var today = new Date();
-                for (var j = 13; j < 19; j++) {
-                    var date = new Date(today.getTime() + j * 24 * 60 * 60 * 1000);
-                    var dd = String(date.getDate()).padStart(2, '0');
-                    var mm = String(date.getMonth() + 1).padStart(2, '0');
-                    var yyyy = date.getFullYear();
-                    date = yyyy + '-' + mm + '-' + dd;
-//                    for (var k = 0; k < crawlAirports.length; k++) {
-//                    var destination = crawlAirports[k].iataCode;
-                    var url = "http://localhost:2000/https://skiplagged.com/api/search.php?from=SGN&to=" + destination + "&depart=" + date + "&return=&format=v3";
-                    getResult(url);
-                    url = "http://localhost:2000/https://skiplagged.com/api/search.php?from=" + destination + "&to=SGN&depart=" + date + "&return=&format=v3";
-                    getResult(url);
-//                        if (start !== destination) {
-//                            var url = "http://localhost:2000/https://skiplagged.com/api/search.php?from=" + start + "&to=" + destination + "&depart=" + date + "&return=&format=v3";
-//                            getResult(url);
-//                        }
-//                }
-
-                }
-                var tableElement = document.getElementById("tableAirport").getElementsByTagName('tbody')[0];
-                var cell = tableElement.rows[i].cells[8];
-                cell.style.color = "Blue";
-                cell.innerHTML = 'Crawling';
-                document.getElementById("crawl-btn-" + i).disabled = true;
-
-            }
-            async function getResult(url) {
-                var xmlHttp = getXmlHttpObject();
-                if (xmlHttp === null) {
-                    alert("Your Browser not support AJAX");
-                    return;
-                }
-                xmlHttp.onreadystatechange = function () {
-                    if (this.readyState === 4 && this.status === 200) {
-                        var jsonObject = JSON.parse(this.responseText);
-                        var flights = jsonObject.flights;
-                        var prices = jsonObject.itineraries.outbound;
-                        var airlines = jsonObject.airlines;
-                        airlines = fixAirlines(airlines);
-
-                        if (airlines.length === 0) {
-                            return;
-                        }
-                        flights = fixFlights(flights, prices);
-                        var xmlFlights = OBJtoXML(flights);
-                        var segments = [];
-                        for (var i = 0; i < flights.flights.flight.length; i++) {
-                            for (var j = 0; j < flights.flights.flight[i].segment.length; j++) {
-                                segments.push(flights.flights.flight[i].segment[j]);
-                            }
-                        }
-                        var filteredSegments = [];
-                        for (var i = 0; i < segments.length; i++) {
-                            var tmpSegment = segments[i];
-                            if (filteredSegments.length !== 0) {
-                                var found = false;
-                                for (var j = 0; j < filteredSegments.length; j++) {
-                                    var tmp = filteredSegments[j];
-                                    if (tmpSegment.airlineCode.airlineCode === tmp.airlineCode.airlineCode
-                                            && tmpSegment.flightNumber === tmp.flightNumber
-                                            && tmpSegment.arrival.city === tmp.arrival.city
-                                            && tmpSegment.departure.city === tmp.departure.city
-                                            && tmpSegment.arrivalTime === tmp.arrivalTime
-                                            && tmpSegment.departureTime === tmp.departureTime) {
-                                        found = true;
-                                        break;
-                                    }
-                                }
-                                if (!found) {
-                                    filteredSegments.push(tmpSegment);
-                                }
-                            } else {
-                                filteredSegments.push(tmpSegment);
-                            }
-                        }
-
-                        var resultFlight = {
-                            xmlFlights: xmlFlights
-
-                        };
-                        for (var i = 0; i < airlines.length; i++) {
-                            insertAirlines(OBJtoXML(airlines[i]));
-                        }
-                        for (var i = 0; i < filteredSegments.length; i++) {
-                            var tmp = {
-                                segment: filteredSegments[i]
-                            };
-                            insertSegments(OBJtoXML(tmp));
-
-                        }
-
-                        resultFlight = OBJtoXML(resultFlight);
-                        resultFlights.push(resultFlight);
-                    }
-                };
-                xmlHttp.open("GET", url, true);
-                xmlHttp.send(null);
-            }
-            async function insertAirlines(xml) {
-                var xmlHttp = getXmlHttpObject();
-                if (xmlHttp === null) {
-                    alert("Your Browser not support AJAX");
-                    return;
-                }
-                xmlHttp.onreadystatechange = function () {
-
-
-                }
-                xmlHttp.open("POST", "http://localhost:8080/Final_Project_WebService/airline", true);
-                xmlHttp.send(xml);
-
-            }
-            async function insertFlights() {
-                var xmlHttp = getXmlHttpObject();
-                if (xmlHttp === null) {
-                    alert("Your Browser not support AJAX");
-                    return;
-                }
-                xmlHttp.onreadystatechange = function () {
-                    flightInserted++;
-                    var countLine = document.getElementById("flightCount").innerHTML = flightInserted + " flight(s) inserted."
-
-                }
-                xmlHttp.open("POST", "http://localhost:8080/Final_Project_WebService/flight", true);
-                var xml = resultFlights.shift();
-                xmlHttp.send(xml);
-
-            }
-            async function executeAllFlights() {
-                while (resultFlights.length !== 0) {
-                    insertFlights();
-                }
-            }
-            function insertSegments(xml) {
-                var xmlHttp = getXmlHttpObject();
-                if (xmlHttp === null) {
-                    alert("Your Browser not support AJAX");
-                    return;
-                }
-                xmlHttp.onreadystatechange = function () {
-
-                }
-                xmlHttp.open("POST", "http://localhost:8080/Final_Project_WebService/segment", false);
-                xmlHttp.send(xml);
-
-            }
-            function fixFlights(obj, prices) {
-                var flights = {
-                    flights: {
-                        flight: []
-                    }
-                };
-                var price;
-                for (var prop in obj) {
-                    for (var item in prices) {
-                        if (prop === prices[item].flight) {
-                            price = prices[item].one_way_price;
-                        }
-                    }
-                    var departure, arrival;
-                    var count = obj[prop].count - 1;
-                    for (var item in airports) {
-                        if (obj[prop].segments[0].departure.airport === airports[item].iataCode) {
-                            departure = airports[item];
-                        } else if (obj[prop].segments[count].arrival.airport === airports[item].iataCode) {
-                            arrival = airports[item];
-                        }
-                    }
-                    var flight = {
-                        flightId: null,
-                        departureDate: obj[prop].segments[0].departure.time.split("T")[0],
-                        arrivalDate: obj[prop].segments[count].arrival.time.split("T")[0],
-                        duration: obj[prop].duration,
-                        price: price,
-                        departure: departure,
-                        arrival: arrival,
-                        segment: fixSegments(obj[prop].segments)
-
-                    };
-                    flights.flights.flight.push(flight);
-                }
-                return flights;
-            }
-            function fixAirlines(obj) {
-                var airlines = [];
-                for (var prop in obj) {
-                    var airline = {
-                        airline: {
-                            airlineCode: prop,
-                            name: obj[prop].name}
-                    };
-                    airlines.push(airline);
-                }
-                return airlines;
             }
             function fixSegments(obj) {
                 var segment = [];
@@ -448,122 +549,639 @@ and open the template in the editor.
                 }
                 return segment;
             }
-
-            function OBJtoXML(obj) {
-                var xml = '';
-                for (var prop in obj) {
-                    xml += obj[prop] instanceof Array ? '' : "<" + prop + ">";
-                    if (obj[prop] instanceof Array) {
-                        for (var array in obj[prop]) {
-                            xml += "<" + prop + ">";
-                            xml += OBJtoXML(new Object(obj[prop][array]));
-                            xml += "</" + prop + ">";
-                        }
-                    } else if (typeof obj[prop] === "object") {
-                        xml += OBJtoXML(new Object(obj[prop]));
-                    } else {
-                        xml += obj[prop];
+            function parseFlightXMLToObject(xmlDOM) {
+                var segments = getElementsByXPath("//segmentList", xmlDOM);
+                if (getElementsByXPath("//segmentList", xmlDOM)[0] === undefined) {
+                    return null;
+                }
+                var resultSegments = [];
+                for (var i = 0; i < segments.length; i++) {
+                    var segment = {
+                        flightNumber: getElementsByXPath("airlineCode/airlineCode", segments[i])[0].firstChild.nodeValue + getElementsByXPath("flightNumber", segments[i])[0].firstChild.nodeValue,
+                        departureCode: getElementsByXPath("departure/iataCode", segments[i])[0].firstChild.nodeValue,
+                        departureCity: getElementsByXPath("departure/city", segments[i])[0].firstChild.nodeValue,
+                        arrivalCode: getElementsByXPath("arrival/iataCode", segments[i])[0].firstChild.nodeValue,
+                        arrivalCity: getElementsByXPath("arrival/city", segments[i])[0].firstChild.nodeValue,
+                        departureTime: getElementsByXPath("departureTime", segments[i])[0].firstChild.nodeValue,
+                        arrivalTime: getElementsByXPath("arrivalTime", segments[i])[0].firstChild.nodeValue,
+                        duration: getElementsByXPath("duration", segments[i])[0].firstChild.nodeValue,
+                        stayCost: getElementsByXPath("arrival/country/countryTravelCost/costMedium", segments[i])[0].firstChild.nodeValue,
+                        arrivalCountry: getElementsByXPath("arrival/country/name", segments[i])[0].firstChild.nodeValue
                     }
-                    xml += obj[prop] instanceof Array ? '' : "</" + prop + ">";
+                    resultSegments.push(segment);
                 }
-                //                var xml = xml.replace(/<\/?[0-9]{1,}>/g, '');
-                return xml;
-            }
-            function dosomething() {
-                results;
-            }
-            function startCrawler() {
-                for (var i = 0; i < 5; i++) {
-                    if (current >= airports.length)
-                        break;
-                    startCrawling(current);
-                    current++;
+                var flight = {
+                    duration: getElementsByXPath("//flight/duration", xmlDOM)[0].firstChild.nodeValue,
+                    price: getElementsByXPath("//price", xmlDOM)[0].firstChild.nodeValue,
+                    segments: resultSegments,
+                    stayCost: getElementsByXPath("//flight/arrival/country/countryTravelCost/costMedium", xmlDOM)[0].firstChild.nodeValue,
+                    arrivalCountry: getElementsByXPath("//arrival/country/name", xmlDOM)[0].firstChild.nodeValue
                 }
-
+                return flight;
             }
-            window.onload = function () {
-                getAirportsForCrawling();
-                getAllAirports();
-            }
-            function crawlCountryCost() {
+            function getSuitableFlight(again) {
+                reloadResult();
                 var xmlHttp = getXmlHttpObject();
                 if (xmlHttp === null) {
                     alert("Your Browser not support AJAX");
                     return;
                 }
-                var url = "http://localhost:8080/Final_Project_WebService/countryCostCrawl";
+                if (!again) {
+                    var dateArray = dateDeparture.split("/");
+                    dateDeparture = dateArray[2] + "-" + dateArray[0] + "-" + dateArray[1];
+                }
+                var url = "http://localhost:8080/Final_Project_WebService/flight?dateDeparture=" + dateDeparture
+                        + "&costWeight=" + (costWeight)
+                        + "&timeWeight=" + (timeWeight)
+                        + "&mostArrivalWeight=" + (mostArrivalWeight)
+                        + "&layoverWeight=" + (layoverWeight);
                 xmlHttp.onreadystatechange = function () {
                     if (this.readyState === 4 && this.status === 200) {
-                        console.log("aaa");
+                        var parser = new DOMParser();
+                        var xmlDOM = parser.parseFromString(this.responseText, "application/xml");
+                        departureFlight = parseFlightXMLToObject(xmlDOM);
+                        if (departureFlight !== null) {
+                            addFlight(departureFlight, "departure-flight");
+                            getReturnFlight();
+                            createFlightBook("departureFlightBookContainer", departureFlight);
+                        } else {
+                            $('#myModal').modal('toggle');
+                        }
                     }
                 };
                 xmlHttp.open("GET", url, true);
                 xmlHttp.send(null);
             }
+            function formateDate(value, plusDay) {
+                var tmp = new Date(value);
+                var date = new Date(tmp.getTime() + plusDay * 24 * 60 * 60 * 1000);
+                var dd = String(date.getDate()).padStart(2, '0');
+                var mm = String(date.getMonth() + 1).padStart(2, '0');
+                var yyyy = date.getFullYear();
+                date = yyyy + '-' + mm + '-' + dd;
+                return date;
+            }
+            function getReturnFlight() {
+                var date = formateDate(departureFlight.segments[departureFlight.segments.length - 1].arrivalTime, 5);
+                var xmlHttp = getXmlHttpObject();
+                if (xmlHttp === null) {
+                    alert("Your Browser not support AJAX");
+                    return;
+                }
+                var url = "http://localhost:8080/Final_Project_WebService/flight/return?dateDeparture=" + date + "&from=" + departureFlight.segments[departureFlight.segments.length - 1].arrivalCode + "&to=SGN";
+                xmlHttp.onreadystatechange = function () {
+                    if (this.readyState === 4 && this.status === 200) {
+                        var parser = new DOMParser();
+                        var xmlDOM = parser.parseFromString(this.responseText, "application/xml");
+                        returnFlight = parseFlightXMLToObject(xmlDOM);
+                        addFlight(returnFlight, "return-flight");
+                        createFlightBook("arrivalFlightBookContainer", returnFlight);
+
+                    } else if (this.readyState === 4 && this.status === 500) {
+                        getSuitableFlight(true);
+                    }
+                };
+                xmlHttp.open("GET", url, true);
+                xmlHttp.send(null);
+            }
+            function differenceTime(startTime, endTime) {
+                startTime = (new Date(startTime));
+                endTime = (new Date(endTime));
+                var difference = (endTime.getTime() - startTime.getTime()) / 1000;
+                return secondsToHourMinuteString(difference);
+            }
+            function getTimeFromString(time) {
+                var date = new Date(time);
+                return date.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    hour12: true,
+                    minute: '2-digit',
+//                  timeZone: timeZone
+                }).replace(" ", "").toLowerCase();
+            }
+            function secondsToHourMinuteString(seconds) {
+                var hr = Math.floor(seconds / 60 / 60);
+                var mn = Math.floor(seconds / 60) - (hr * 60);
+                return hr + "h " + mn + "m";
+            }
+            function addFlight(flight, id) {
+                var trip_list = document.getElementById(id);
+                var trip_html =
+                        "<div class=\"trip\">" +
+                        "<div class=\"trip-duration\">" +
+                        Math.ceil(flight.duration / 3600) + "h" +
+                        "<span class=\"trip-stops\">" + (flight.segments.length - 1) + " stops</span>" +
+                        "</div>" +
+                        "<div class=\"span9 trip-path\">";
+                for (var i = 0; i < flight.segments.length; i++) {
+                    if (i === 0) {
+                        trip_html +=
+                                "<div class=\"trip-path-point\" style=\"width: 10%\">" +
+                                "<div class=\"trip-path-point-time \">" + getTimeFromString(flight.segments[i].departureTime) + "</div>" +
+                                "<div class=\"trip-path-point-airport\">" +
+                                "<span class=\"airport-code\">" + flight.segments[i].departureCode + "</span>" +
+                                "<span class=\"airport-city\">" + flight.segments[i].departureCity + "</span>" +
+                                "</div>" +
+                                "</div>" +
+                                "<div class=\"trip-path-spacer\" style=\"width: 10%;\">" +
+                                "<div class=\"trip-path-spacer-label\">" + secondsToHourMinuteString(flight.segments[i].duration) + "</div>" +
+                                "<div class=\"trip-path-point-airport\">" +
+                                "<span class=\"airport-code\"></span>" +
+                                "<span class=\"airport-city\"></span>" +
+                                "</div>" +
+                                "<div class=\"trip-path-spacer-arrow-wrapper\" style=\"width: 100%;\">" +
+                                "<span class=\"trip-path-spacer-line\">" +
+                                "<div></div>" +
+                                "</span>" +
+                                "</div>" +
+                                "</div>" +
+                                "<div class=\"trip-path-point trip-path-point-airport-demp same-layover\">" +
+                                "<div class=\"trip-path-point-time\">" + getTimeFromString(flight.segments[i].arrivalTime) + "</div>" +
+                                "<div class=\"trip-path-point-airport\">" +
+                                "<span class=\"airport-code\">" + flight.segments[i].arrivalCode + "</span>" +
+                                "<span class=\"airport-city\">" + flight.segments[i].arrivalCity + "</span>" +
+                                "</div>" +
+                                "</div>";
+                    }
+                    if (i > 0 && i < (flight.segments.length - 1)) {
+                        trip_html +=
+                                "<div class=\"trip-path-spacer same-layover\" style=\"width: 10%;\">" +
+                                "<div class=\"trip-path-spacer-label\">" + differenceTime(flight.segments[i - 1].arrivalTime, flight.segments[i].departureTime) + "</div>" +
+                                "<div class=\"trip-path-point-airport\">" +
+                                "<span class=\"airport-code\">" + flight.segments[i].departureCode + "</span>" +
+                                "<span class=\"airport-city\">" + flight.segments[i].departureCity + "</span>" +
+                                "</div>" +
+                                "<div class=\"trip-path-spacer-arrow-wrapper trip-path-spacer-arrow-layover\" style=\"width: 100%;\">" +
+                                "<span class=\"trip-path-spacer-line\">" +
+                                "<div></div>" +
+                                "</span>" +
+                                "</div>" +
+                                "</div>" +
+                                "<div class=\"trip-path-point trip-path-point-airport-demp\">" +
+                                "<div class=\"trip-path-point-time\">" + getTimeFromString(flight.segments[i].departureTime) + "</div>" +
+                                "<div class=\"trip-path-point-airport\">" +
+                                "<span class=\"airport-code\">" + flight.segments[i].departureCode + "</span>" +
+                                "<span class=\"airport-city\">" + flight.segments[i].departureCity + "</span>" +
+                                "</div>" +
+                                "</div>" +
+                                " <div class=\"trip-path-spacer\" style=\"width: 10%;\">" +
+                                "<div class=\"trip-path-spacer-label\">" + secondsToHourMinuteString(flight.segments[i].duration) + "</div>" +
+                                "<div class=\"trip-path-point-airport\">" +
+                                "<span class=\"airport-code\"></span>" +
+                                "<span class=\"airport-city\"></span>" +
+                                "</div>" +
+                                " <div class=\"trip-path-spacer-arrow-wrapper\" style=\"width: 100%;\">" +
+                                "<span class=\"trip-path-spacer-line\">" +
+                                "<div></div>" +
+                                "</span>" +
+                                "</div>" +
+                                "</div>" +
+                                "<div class=\"trip-path-point trip-path-point-airport-demp same-layover\">" +
+                                "<div class=\"trip-path-point-time\">" + getTimeFromString(flight.segments[i].arrivalTime) + "</div>" +
+                                "<div class=\"trip-path-point-airport\">" +
+                                "<span class=\"airport-code\">" + flight.segments[i].arrivalCode + "</span>" +
+                                "<span class=\"airport-city\">" + flight.segments[i].arrivalCity + "</span>" +
+                                "</div>" +
+                                "</div>";
+                    }
+                    if (i === (flight.segments.length - 1)) {
+                        trip_html +=
+                                "<div class=\"trip-path-spacer same-layover\" style=\"width: 10%;\">" +
+                                "<div class=\"trip-path-spacer-label\">" + differenceTime(flight.segments[i - 1].arrivalTime, flight.segments[i].departureTime) + "</div>" +
+                                "<div class=\"trip-path-point-airport\">" +
+                                "<span class=\"airport-code\">" + flight.segments[i].departureCode + "</span>" +
+                                "<span class=\"airport-city\">" + flight.segments[i].departureCity + "</span>" +
+                                "</div>" +
+                                "<div class=\"trip-path-spacer-arrow-wrapper trip-path-spacer-arrow-layover\" style=\"width: 100%;\">" +
+                                "<span class=\"trip-path-spacer-line\">" +
+                                "<div></div>" +
+                                "</span>" +
+                                "</div>" +
+                                "</div>" +
+                                "<div class=\"trip-path-point trip-path-point-airport-demp\">" +
+                                "<div class=\"trip-path-point-time\">" + getTimeFromString(flight.segments[i].departureTime) + "</div>" +
+                                "<div class=\"trip-path-point-airport\">" +
+                                "<span class=\"airport-code\">" + flight.segments[i].departureCode + "</span>" +
+                                "<span class=\"airport-city\">" + flight.segments[i].departureCity + "</span>" +
+                                "</div>" +
+                                "</div>" +
+                                "<div class=\"trip-path-spacer\" style=\"width: 10%;\">" +
+                                "<div class=\"trip-path-spacer-label\">" + secondsToHourMinuteString(flight.segments[i].duration) + "</div>" +
+                                "<div class=\"trip-path-point-airport\">" +
+                                "<span class=\"airport-code\"></span>" +
+                                "<span class=\"airport-city\"></span></div>" +
+                                "<div class=\"trip-path-spacer-arrow-wrapper\" style=\"width: 100%;\">" +
+                                "<span class=\"trip-path-spacer-line\">" +
+                                "<div></div>" +
+                                "</span></div>" +
+                                "</div>" +
+                                "<div class=\"trip-path-point\">" +
+                                "<div class=\"trip-path-point-time\">" + getTimeFromString(flight.segments[i].arrivalTime) + "</div>" +
+                                "<div class=\"trip-path-point-airport\">" +
+                                "<span class=\"airport-code\">" + flight.segments[i].arrivalCode + "</span>" +
+                                "<span class=\"airport-city\">" + flight.segments[i].arrivalCity + "</span>" +
+                                "</div>" +
+                                "</div>";
+                    }
+                }
+                trip_html +=
+                        "</div>" +
+                        "<div class=\"trip-cost text-success\">" +
+                        "<p class=\"\">$" + flight.price.substring(0, flight.price.length - 4) + "</p>" +
+                        "</div>"
+                trip_list.innerHTML = trip_list.innerHTML + trip_html
+
+            }
+            function refreshPage() {
+                window.location.reload();
+            }
+            function reloadResult() {
+                document.getElementById("departure-flight").innerHTML = "";
+                document.getElementById(("return-flight")).innerHTML = "";
+                document.getElementById("departureFlightBookContainer").innerHTML = "";
+                document.getElementById("arrivalFlightBookContainer").innerHTML = "";
+            }
+            window.onload = function () {
+                username = getCookie("username");
+                fullname = getCookie("fullname");
+                role = getCookie("role");
+                if (username != "" && fullname != "") {
+                    document.getElementById("btnLogin").style.display = "none";
+                    document.getElementById("btnRegister").style.display = "none";
+                    document.getElementById("welcome").innerHTML = 'Welcome back ' + fullname;
+                    if (role == 1) {
+                        document.getElementById("adminBtn").style.visibility = 'visible';
+                    }
+                } else {
+                    document.getElementById("btnLogout").style.display = "none";
+
+                }
+            }
+            function logout() {
+                delete_cookie("username");
+                delete_cookie("role");
+                delete_cookie("fullname");
+                window.location.reload(true);
+            }
         </script>
     </head>
-    <body>
-        <h3 class="text-primary text-center">Flight Crawler</h3>
-        <a class="btn btn-primary" href="http://localhost:8080/Final_Project_Client/index.html">
-            Home
-        </a>
-        <div id="flightCount" class="alert alert-primary" role="alert" style="width: 200px; margin-left: 20px">
-            0 flight(s) inserted.
-        </div>
-        <button id="btnLogin" type="button" class="btn btn-primary" onclick="crawlCountryCost()">
-            Crawl country cost
-        </button>
-        <div class="table-wrapper-scroll-y my-custom-scrollbar" style="margin: 10px">
+    <body style="background-color:  wheat">
+        <nav class="navbar navbar-dark bg-dark" style="background-color: #e3f2fd;">
+            <div>
+                <h5 id="welcome" class="bg-success"></h5>
+            </div>
+            <div>
+                <a id="adminBtn" href="http://localhost:8080/Final_Project_Crawler/crawler.html" class="btn btn-primary" style="color: white; visibility: hidden">
+                    Admin
+                </a>
+                <button id="btnLogout" type="button" class="btn btn-danger" onclick="logout()">
+                    Logout
+                </button>
+                <button id="btnLogin" type="button" class="btn btn-primary" data-toggle="modal" data-target="#login">
+                    Login
+                </button>
+                <button id="btnRegister" type="button" class="btn btn-primary" data-toggle="modal" data-target="#register">
+                    Register
+                </button>
+            </div>
 
-            <table id="tableAirport" class="table table-bordered table-striped mb-0 table-hover">
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">IATA code</th>
-                        <th scope="col">Airport name</th>
-                        <th scope="col">City</th>
-                        <th scope="col">Country code</th>
-                        <th scope="col">Country name</th>
-                        <th scope="col">Continent</th>
-                        <th scope="col"></th>
-                        <th scope="col">Status</th>                        
-                    </tr>
-                </thead>
-                <tbody>
-
-                </tbody>
-            </table>
-
-        </div>
-        <!--        <div class="container py-5">
-                    <div class="row">
-                        <div class="col-md-10 mx-auto">
-                            <form>
-                                <div class="form-group row">
-                                    <div class="col-sm-6">
-                                        <label for="departure_date">Departure date</label>
-                                        <input type="text" class="form-control" id="departure_date" placeholder="Departure date">
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <label for="arrival_date">Arrival date</label>
-                                        <input type="text" class="form-control" id="arrival_date" placeholder="Arrival date">
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
+        </nav>
+        <!-- Modal -->
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">We are sorry!</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
-                </div>-->
-        <div class="container">
-            <div class="row">
-                <div class="col text-center">
-                    <button type="button" class="btn btn-primary btn-lg btn-block bg-success" onclick="startCrawler()">Crawl 5 each</button>
-                </div>
-                <div class="col text-center">
-                    <button type="button" class="btn btn-primary btn-lg btn-block bg-primary" onclick="executeAllFlights()">Insert all flights</button>
+                    <div class="modal-body">
+                        There is no flight result for the date you picked. Please try again.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="refreshPage()">Do survey again</button>
+                    </div>
                 </div>
             </div>
         </div>
-        <script src="jquery.min.js"></script>
+        <div class="fixed-top my-5" id="heading"  style="width: 100%">
+            <h2 class="display-2" style="text-align: center; color: coral">Lets us select your suitable travel</h2>
+        </div>
+        <div class="row h-100">
+            <div class="col my-auto mx-5" >
+                <div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="false">
+                    <div class="carousel-inner" >
+                        <div class="carousel-item active">
+                            <div class="jumbotron">                               
+                                <p class="lead my-auto">
+                                    How many people do you plan to travel?
+                                </p>
+                                <div id="countAlert" class="alert alert-warning" role="alert" style="display: none">
+                                    Please input number of people!
+                                </div>
+                                <div class="input-group mb-3">
+                                    <input id="peopleCount" type="number" class="form-control" placeholder="Enter number of people for the trip." aria-label="Recipient's username" aria-describedby="basic-addon2">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="nextQuestion()">Next</button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <div class="jumbotron">
+                                <p class="lead my-auto">
+                                    How many days do you intend to travel?
+                                </p>
+                                <div id="peopleCountAlert" class="alert alert-warning" role="alert" style="display: none">
+                                    Please input number of days!
+                                </div>
+                                <div class="input-group mb-3">
+                                    <input id="dayCount" type="number" class="form-control" placeholder="Enter number of days for the trip." aria-label="Recipient's username" aria-describedby="basic-addon2">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="nextQuestion()">Next</button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <div class="jumbotron">
+                                <p class="lead my-auto">
+                                    When do you plan to start your travel?
+                                </p>
+                                <div id="dayAlert" class="alert alert-warning" role="alert" style="display: none">
+                                    Please select a date!
+                                </div>
+                                <div class="d-flex justify-content-center">
+                                    <div>
+                                        <div class="input-group mb-3 mt-3">
+                                            <input id="startDate" placeholder="Departure date" width="276"/>       
+                                            <div class="input-group-append">
+                                                <button class="btn btn-outline-secondary" type="button" onclick="nextQuestion()">Next</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <script>
+
+                                    var today = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+                                    $('#startDate').datepicker({
+                                        uiLibrary: 'bootstrap4',
+                                        iconsLibrary: 'fontawesome',
+                                        minDate: today,
+                                        //                                        maxDate: function () {
+                                        //                                            return $('#endDate').val();
+                                        //                                        }
+                                    });
+                                </script>
+
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <div class="jumbotron">
+                                <p class="lead">
+                                    How important is cost to you when choosing a vacation destination?
+                                </p>
+                                <div id="costSurveyContainer"></div>
+                                <script>
+                                    var costImportants = [
+                                        "Not at all important",
+                                        "Slightly important",
+                                        "Moderately important",
+                                        "Very important",
+                                        "Extremely important"];
+                                    var costSurveyHtml = "";
+                                    for (var i = 0; i < costImportants.length; i++) {
+                                        costSurveyHtml += "<label class=\"mt-3\">"
+                                                + "<input type=\"radio\" name=\"costSurvey\" class=\"card-input-element d-none\" value=\"" + i + "\" onclick=\"costSurvey(this.value)\">"
+                                                + "<div class=\"card card-body bg-light d-flex flex-row justify-content-between align-items-center\">"
+                                                + costImportants[i]
+                                                + "</div>"
+                                                + " </label>"
+                                    }
+                                    document.getElementById("costSurveyContainer").innerHTML = costSurveyHtml;
+                                </script>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <div class="jumbotron">
+                                <p class="lead">
+                                    How important you think flight time is comparing to cost?
+                                </p>
+                                <div id="timeSurveyContainer"></div>
+                                <script>
+                                    var timeImportants = [
+                                        "Cost is much more important",
+                                        "Cost is more important",
+                                        "Equally important",
+                                        "Time is more important",
+                                        "Time is much more important"
+                                    ];
+                                    var timeImportantSurveyHtml = "";
+                                    for (var i = 0; i < timeImportants.length; i++) {
+                                        timeImportantSurveyHtml += "<label class=\"mt-3\">"
+                                                + "<input type=\"radio\" name=\"costSurvey\" class=\"card-input-element d-none\" value=\"" + i + "\" onclick=\"timeSurvey(this.value)\">"
+                                                + "<div class=\"card card-body bg-light d-flex flex-row justify-content-between align-items-center\">"
+                                                + timeImportants[i]
+                                                + "</div>"
+                                                + " </label>"
+                                    }
+                                    document.getElementById("timeSurveyContainer").innerHTML = timeImportantSurveyHtml;
+                                </script>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <div class="jumbotron">
+                                <p class="lead">
+                                    Do you prefer travel at most visited cities?
+                                </p>
+                                <div id="crowdedSurveyContainer"></div>
+                                <script>
+                                    var crowdedSurveys = [
+                                        "No they are too crowded",
+                                        "It's ok to travel",
+                                        "It might be fun with many activities",
+                                        "Absoloutely prefer energetic cities"];
+                                    var crowdedSurveyHtml = "";
+                                    for (var i = 0; i < crowdedSurveys.length; i++) {
+                                        crowdedSurveyHtml += "<label class=\"mt-3\">"
+                                                + "<input type=\"radio\" name=\"costSurvey\" class=\"card-input-element d-none\" value=\"" + i + "\" onclick=\"mostArrivalSurvey(this.value)\">"
+                                                + "<div class=\"card card-body bg-light d-flex flex-row justify-content-between align-items-center\">"
+                                                + crowdedSurveys[i]
+                                                + "</div>"
+                                                + " </label>"
+                                    }
+                                    document.getElementById("crowdedSurveyContainer").innerHTML = crowdedSurveyHtml;
+                                </script>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <div class="jumbotron">
+                                <p class="lead">
+                                    Do you prefer long layover time travel as an opportunity to visit more places for lower cost?
+                                </p>
+                                <p>
+                                    Please select with caution. You may be required to get a visa for visiting layover city.
+                                </p>
+                                <div id="layoverSurveyContainer"></div>
+                                <script>
+                                    var layoverSurveys = [
+                                        "No i prefer go straight ahead destination as quickly as possible",
+                                        "I prefer visit more places with lower cost by long layover time"];
+                                    var layoverSurveyHtml = "";
+                                    for (var i = 0; i < layoverSurveys.length; i++) {
+                                        layoverSurveyHtml += "<label class=\"mt-3\">"
+                                                + "<input type=\"radio\" name=\"costSurvey\" class=\"card-input-element d-none\" value=\"" + i + "\" onclick=\"layoverSurvey(this.value)\">"
+                                                + "<div class=\"card card-body bg-light d-flex flex-row justify-content-between align-items-center\">"
+                                                + layoverSurveys[i]
+                                                + "</div>"
+                                                + " </label>"
+                                    }
+                                    document.getElementById("layoverSurveyContainer").innerHTML = layoverSurveyHtml;
+                                </script>
+                            </div>
+                        </div>                       
+                    </div>
+                </div>
+                <script>
+                    function createFlightBook(id, flight) {
+                        document.getElementsByClassName("bookingContainer")[0].style.display = "block";
+                        var flightBookContainer = document.getElementById(id);
+                        var htmlContent = "";
+                        for (var i = 0; i < flight.segments.length; i++) {
+                            var segment = flight.segments[i];
+                            htmlContent +=
+                                    "<div class=\"col-sm\">" +
+                                    "<div class=\"card\" style=\"width: 18rem;\">" +
+                                    "<div class=\"card-body\">" +
+                                    "<h5 class=\"card-title\">" + segment.arrivalCity + "</h5>" +
+                                    "<p class=\"card-text\">This country has the average daily cost for a person is " + segment.stayCost + " $.</p>" +
+                                    "</div>" +
+                                    "<ul class=\"list-group list-group-flush\">" +
+                                    "<li class=\"list-group-item\">Departure: " + segment.departureCity + "</li>" +
+                                    "<li class=\"list-group-item\">Departure time: " + segment.departureTime + "</li>" +
+                                    "<li class=\"list-group-item\">Arrival: " + segment.arrivalCity + "</li>" +
+                                    "<li class=\"list-group-item\">Arrival time: " + segment.arrivalTime + "</li>" +
+                                    "</ul>" +
+                                    "<div class=\"card-body\">" +
+                                    "<a href=\"https://skiplagged.com/flights/" + segment.departureCode + "/" + segment.arrivalCode + "/" + formateDate(segment.departureTime, 0) + "#trip=" + segment.flightNumber + "\" target=\"_blank\" class=\"card-link\">Book Now</a>" +
+                                    "</div>" +
+                                    "</div>" +
+                                    "</div>";
+
+                        }
+                        flightBookContainer.innerHTML = htmlContent;
+
+                    }
+                </script>
+                <div id="flightsContainer" style="display: none">
+                    <h2 class="display-2" style="text-align: center; color: coral;">Flights result</h2>
+                    <h6 class="display-1120">Departure Flight</h6>
+                    <div id="departure-flight" class="trip-list">
+
+                    </div>
+                    <h6 class="display-1120">Return Flight</h6>
+                    <div id="return-flight" class="trip-list">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div  class="container bookingContainer" style="display: none">
+            <h6 class="display-1120">Departure Flight</h6>
+            <div id="departureFlightBookContainer" class="row">
+
+            </div>
+            <h6 class="display-1120">Return Flight</h6>
+            <div id="arrivalFlightBookContainer" class="row">
+
+            </div>
+        </div>
+
+
+        <!-- Modal -->
+        <div class="modal fade" id="login" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLongTitle">Login</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div id="loginAlert" class="alert alert-danger" role="alert" style="display: none">
+                                Wrong username or password
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputEmail1">Username</label>
+                                <input type="text" class="form-control" id="loginUsername" aria-describedby="emailHelp" placeholder="Enter username" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputPassword1">Password</label>
+                                <input type="password" class="form-control" id="loginPassword" placeholder="Password" required>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="rememberCheck">
+                                <label class="form-check-label" for="exampleCheck1">Remember me</label>
+                            </div>
+                            <button type="button" class="btn btn-primary" onClick="login()">Login</button>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="loginCloseBtn" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Modal -->
+        <div class="modal fade" id="register" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLongTitle">Login</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="form-group">
+                                <label for="mail">Email address</label>
+                                <input type="email" name="mail" class="form-control" id="registerEmail" placeholder="Enter email"  required>
+                                <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>        
+                            </div>
+                            <div class="form-group">
+                                <label for="username">Username</label>
+                                <input type="text" name="username" class="form-control" id="registerUsername" aria-describedby="emailHelp" placeholder="Enter username" required="">
+                                <small id="emailHelp" class="form-text text-muted">Please choose a unique and valid username.</small>
+                            </div> 
+                            <div class="form-group">
+                                <label for="fullname">Full name</label>
+                                <input type="text" name="fullname" class="form-control" id="registerFullname" aria-describedby="emailHelp" placeholder="Enter full name" required="">
+                            </div>  
+                            <div class="form-group">
+                                <label for="registerPassword">Password</label>
+                                <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password" required="">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Register</button>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <script src="bootstrap.min.js"></script>
     </body>
 </html>

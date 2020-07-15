@@ -242,7 +242,7 @@ public class FlightService {
             if (sortedScoreList.size() < 4) {
                 max = sortedScoreList.size() - 1;
             } else {
-                max = 20;
+                max = sortedScoreList.size()/4;
             }
             HashSet<Flight> result = new HashSet<>();
             flights = new ArrayList<>();

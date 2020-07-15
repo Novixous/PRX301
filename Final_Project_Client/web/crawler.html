@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="bootstrap.min.css">
+        <style>
+            .my-custom-scrollbar {
+                position: relative;
+                height: 600px;
+                overflow: auto;
+            }
+            .table-wrapper-scroll-y {
+                display: block;
+            }
+            .table-striped> tbody >tr:nth-child(odd){
+                background-color:#d9edf7;
+            }
+            .table-striped>tbody>tr:nth-child(even){
+                background-color: #f2dede;
+            }
+            .table-striped> thead>tr{
+                background-color:#fff3b7;
+            }
+        </style>
+        <script type="text/javascript">
+            var continent = [];
+            continent[0] = "Africa";
+            continent[1] = "Antarctica";
+            continent[2] = "Asia";
+            continent[3] = "Europe";
+            continent[4] = "North America";
+            continent[5] = "Oceania";
+            continent[6] = "South America";
+            var flightInserted = 0;
+            var airports = [];
+            var crawlAirports = [];
+            var resultAirlines = [];
+            var resultFlights = [];
+            var resultSegments = [];
+            var validResult = true;
+            var current = 0;
+            var pendingConnections = 0;
+            function getXmlHttpObject() {
+                var xmlHttp = null;
+                try {// firefox, opera 8.0+, safari
+                    xmlHttp = new XMLHttpRequest();
+                } catch (e) {
+                    try {// IE
+                        xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
+                    } catch (e) {
+                        xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+                    }
+                }
+                return xmlHttp;
+            }
+            function sleep(milliseconds) {
+                var start = new Date().getTime();
+                for (var i = 0; i < 1e7; i++) {
+                    if ((new Date().getTime() - start) > milliseconds) {
+                        break;
+                    }
+                }
+            }
+            function addRow(tableId, cells) {
+                var tableElement = document.getElementById(tableId).getElementsByTagName('tbody')[0];
+                var newRow = tableElement.insertRow(tableElement.rows.length);
+                var newCell;
+                for (var i = 0; i < cells.length; i++) {
+                    newCell = newRow.insertCell(newRow.cells.length);
+                    newCell.innerHTML = cells[i];
+                    if (i === (cells.length - 1)) {
+                        newCell.style.color = "Grey";
+                        newCell.style.fontWeight = "bold";
+                    }
+                }
+                return newRow;
+            }
+            function deleteRow(tableId, rowNumber) {
+                var tableElement = document.getElementById(tableId);
+                if (rowNumber > 0 & rowNumber < tableElement.rows.length) {
+                    tableElement.deleteRow(rowNumber);
+                } else {
+                    alert("Failed");
+                }
+
+            }
+            function getNodeValue(nodeName, node) {
+                if (node === null) {
+                    return null;
+                }
+                if (node.tagName === nodeName) {
+                    return node.firstChild.nodeValue;
+                }
+                var temp = node.nextSibling;
+                if (temp !== null) {
+                    return getNodeValue(nodeName, temp);
+                }
+                var child = node.childNodes;
+                if (child !== null) {
+                    for (var i = 0; i < child.length; i++) {
+                        return getNodeValue(nodeName, child[i]);
+                    }
+                }
+            }
+            function getNodeValues(nodeName, node) {
+                if (node === null) {
+                    return null;
+                }
+                if (node.tagName === nodeName) {
+                    return node.firstChild.nodeValue;
+                }
+                var temp = node.nextSibling;
+                if (temp !== null) {
+                    return getNodeValue(nodeName, temp);
+                }
+                var child = node.childNodes;
+                if (child !== null) {
+                    for (var i = 0; i < child.length; i++) {
+                        return getNodeValue(nodeName, child[i]);
+                    }
+                }
+            }
+            function getElementsByXPath(xpath, parent)
+            {
+                let results = [];
+                let query = document.evaluate(xpath, parent || document,
+                        null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+                for (let i = 0, length = query.snapshotLength; i < length; ++i) {
+                    results.push(query.snapshotItem(i));
+                }
+                return results;
+            }
+            function addAirports(xmlDOM, obj) {
+                var parser = new DOMParser();
+                var airportDoms = getElementsByXPath("//airport", xmlDOM);
+                for (var i = 0; i < airportDoms.length; i++) {
+                    var airportDom = parser.parseFromString(airportDoms[i].outerHTML, "application/xml");
+                    var airport = {
+                        city: getElementsByXPath("//city", airportDom)[0].firstChild.nodeValue,
+                        continent: getElementsByXPath("//continent", airportDom)[0].firstChild.nodeValue,
+                        country: {
+                            code: getElementsByXPath("//country/code", airportDom)[0].firstChild.nodeValue,
+                            continent: getElementsByXPath("//country/continent", airportDom)[0].firstChild.nodeValue,
+                            countryTravelCost: {
+                                costCheap: typeof getElementsByXPath("//countryTravelCost/costCheap", airportDom)[0] === 'undefined' ? null : getElementsByXPath("//countryTravelCost/costCheap", airportDom)[0].firstChild.nodeValue,
+                                costHigh: typeof getElementsByXPath("//countryTravelCost/costHigh", airportDom)[0] === 'undefined' ? null : getElementsByXPath("//countryTravelCost/costHigh", airportDom)[0].firstChild.nodeValue,
+                                costMedium: typeof getElementsByXPath("//countryTravelCost/costMedium", airportDom)[0] === 'undefined' ? null : getElementsByXPath("//countryTravelCost/costMedium", airportDom)[0].firstChild.nodeValue
+                            },
+                            name: getElementsByXPath("//country/name", airportDom)[0].firstChild.nodeValue
+                        },
+                        iataCode: getElementsByXPath("//iataCode", airportDom)[0].firstChild.nodeValue,
+                        name: getElementsByXPath("//airport/name", airportDom)[0].firstChild.nodeValue,
+                        type: getElementsByXPath("//type", airportDom)[0].firstChild.nodeValue
+                    };
+                    obj.push(airport);
+
+                }
+            }
+            function addAirportsToTable() {
+                for (var i = 0; i < crawlAirports.length; i++) {
+                    var cells = [];
+                    cells[0] = i;
+                    cells[1] = crawlAirports[i].iataCode;
+                    cells[2] = crawlAirports[i].name;
+                    cells[3] = crawlAirports[i].city;
+                    cells[4] = crawlAirports[i].country.code;
+                    cells[5] = crawlAirports[i].country.name;
+                    cells[6] = continent[crawlAirports[i].continent];
+                    cells[7] = '<button type="button" id="crawl-btn-' + i + '" class="btn btn-primary" onclick="startCrawling(' + i + ')">Crawl</button>';
+                    cells[8] = 'Not started';
+                    addRow('tableAirport', cells);
+                }
+            }
+            async function getAirportsForCrawling() {
+                var xmlHttp = getXmlHttpObject();
+                if (xmlHttp === null) {
+                    alert("Your Browser not support AJAX");
+                    return;
+                }
+                var url = "http://localhost:8080/Final_Project_WebService/airport/crawl";
+                xmlHttp.onreadystatechange = function () {
+                    if (this.readyState === 4 && this.status === 200) {
+                        var parser = new DOMParser();
+                        var xmlDOM = parser.parseFromString(this.responseText, "application/xml");
+                        addAirports(xmlDOM, crawlAirports);
+                        addAirportsToTable();
+                    }
+                };
+                xmlHttp.open("GET", url, true);
+                xmlHttp.send(null);
+            }
+            async function getAllAirports() {
+                var xmlHttp = getXmlHttpObject();
+                if (xmlHttp === null) {
+                    alert("Your Browser not support AJAX");
+                    return;
+                }
+                var url = "http://localhost:8080/Final_Project_WebService/airport/all";
+                xmlHttp.onreadystatechange = function () {
+                    if (this.readyState === 4 && this.status === 200) {
+                        var parser = new DOMParser();
+                        var xmlString = this.responseText;
+                        xmlString = xmlString.replace("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>", "");
+                        var xmlDOM = parser.parseFromString(this.responseText, "application/xml");
+                        addAirports(xmlDOM, airports);
+                    }
+                };
+                xmlHttp.open("GET", url, true);
+                xmlHttp.send(null);
+            }
+            async function startCrawling(i) {
+                var destination = crawlAirports[i].iataCode;
+//                var start = crawlAirports[i].iataCode;
+                var today = new Date();
+                for (var j = 13; j < 19; j++) {
+                    var date = new Date(today.getTime() + j * 24 * 60 * 60 * 1000);
+                    var dd = String(date.getDate()).padStart(2, '0');
+                    var mm = String(date.getMonth() + 1).padStart(2, '0');
+                    var yyyy = date.getFullYear();
+                    date = yyyy + '-' + mm + '-' + dd;
+//                    for (var k = 0; k < crawlAirports.length; k++) {
+//                    var destination = crawlAirports[k].iataCode;
+                    var url = "http://localhost:2000/https://skiplagged.com/api/search.php?from=SGN&to=" + destination + "&depart=" + date + "&return=&format=v3";
+                    getResult(url);
+                    url = "http://localhost:2000/https://skiplagged.com/api/search.php?from=" + destination + "&to=SGN&depart=" + date + "&return=&format=v3";
+                    getResult(url);
+//                        if (start !== destination) {
+//                            var url = "http://localhost:2000/https://skiplagged.com/api/search.php?from=" + start + "&to=" + destination + "&depart=" + date + "&return=&format=v3";
+//                            getResult(url);
+//                        }
+//                }
+
+                }
+                var tableElement = document.getElementById("tableAirport").getElementsByTagName('tbody')[0];
+                var cell = tableElement.rows[i].cells[8];
+                cell.style.color = "Blue";
+                cell.innerHTML = 'Crawling';
+                document.getElementById("crawl-btn-" + i).disabled = true;
+
+            }
+            async function getResult(url) {
+                var xmlHttp = getXmlHttpObject();
+                if (xmlHttp === null) {
+                    alert("Your Browser not support AJAX");
+                    return;
+                }
+                xmlHttp.onreadystatechange = function () {
+                    if (this.readyState === 4 && this.status === 200) {
+                        var jsonObject = JSON.parse(this.responseText);
+                        var flights = jsonObject.flights;
+                        var prices = jsonObject.itineraries.outbound;
+                        var airlines = jsonObject.airlines;
+                        airlines = fixAirlines(airlines);
+
+                        if (airlines.length === 0) {
+                            return;
+                        }
+                        flights = fixFlights(flights, prices);
+                        var xmlFlights = OBJtoXML(flights);
+                        var segments = [];
+                        for (var i = 0; i < flights.flights.flight.length; i++) {
+                            for (var j = 0; j < flights.flights.flight[i].segment.length; j++) {
+                                segments.push(flights.flights.flight[i].segment[j]);
+                            }
+                        }
+                        var filteredSegments = [];
+                        for (var i = 0; i < segments.length; i++) {
+                            var tmpSegment = segments[i];
+                            if (filteredSegments.length !== 0) {
+                                var found = false;
+                                for (var j = 0; j < filteredSegments.length; j++) {
+                                    var tmp = filteredSegments[j];
+                                    if (tmpSegment.airlineCode.airlineCode === tmp.airlineCode.airlineCode
+                                            && tmpSegment.flightNumber === tmp.flightNumber
+                                            && tmpSegment.arrival.city === tmp.arrival.city
+                                            && tmpSegment.departure.city === tmp.departure.city
+                                            && tmpSegment.arrivalTime === tmp.arrivalTime
+                                            && tmpSegment.departureTime === tmp.departureTime) {
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                                if (!found) {
+                                    filteredSegments.push(tmpSegment);
+                                }
+                            } else {
+                                filteredSegments.push(tmpSegment);
+                            }
+                        }
+
+                        var resultFlight = {
+                            xmlFlights: xmlFlights
+
+                        };
+                        for (var i = 0; i < airlines.length; i++) {
+                            insertAirlines(OBJtoXML(airlines[i]));
+                        }
+                        for (var i = 0; i < filteredSegments.length; i++) {
+                            var tmp = {
+                                segment: filteredSegments[i]
+                            };
+                            insertSegments(OBJtoXML(tmp));
+
+                        }
+
+                        resultFlight = OBJtoXML(resultFlight);
+                        resultFlights.push(resultFlight);
+                    }
+                };
+                xmlHttp.open("GET", url, true);
+                xmlHttp.send(null);
+            }
+            async function insertAirlines(xml) {
+                var xmlHttp = getXmlHttpObject();
+                if (xmlHttp === null) {
+                    alert("Your Browser not support AJAX");
+                    return;
+                }
+                xmlHttp.onreadystatechange = function () {
+
+
+                }
+                xmlHttp.open("POST", "http://localhost:8080/Final_Project_WebService/airline", true);
+                xmlHttp.send(xml);
+
+            }
+            async function insertFlights() {
+                var xmlHttp = getXmlHttpObject();
+                if (xmlHttp === null) {
+                    alert("Your Browser not support AJAX");
+                    return;
+                }
+                xmlHttp.onreadystatechange = function () {
+                    flightInserted++;
+                    var countLine = document.getElementById("flightCount").innerHTML = flightInserted + " flight batch(s) inserted."
+
+                }
+                xmlHttp.open("POST", "http://localhost:8080/Final_Project_WebService/flight", true);
+                var xml = resultFlights.shift();
+                xmlHttp.send(xml);
+
+            }
+            async function executeAllFlights() {
+                while (resultFlights.length !== 0) {
+                    insertFlights();
+                }
+            }
+            function insertSegments(xml) {
+                var xmlHttp = getXmlHttpObject();
+                if (xmlHttp === null) {
+                    alert("Your Browser not support AJAX");
+                    return;
+                }
+                xmlHttp.onreadystatechange = function () {
+
+                }
+                xmlHttp.open("POST", "http://localhost:8080/Final_Project_WebService/segment", false);
+                xmlHttp.send(xml);
+
+            }
+            function fixFlights(obj, prices) {
+                var flights = {
+                    flights: {
+                        flight: []
+                    }
+                };
+                var price;
+                for (var prop in obj) {
+                    for (var item in prices) {
+                        if (prop === prices[item].flight) {
+                            price = prices[item].one_way_price;
+                        }
+                    }
+                    var departure, arrival;
+                    var count = obj[prop].count - 1;
+                    for (var item in airports) {
+                        if (obj[prop].segments[0].departure.airport === airports[item].iataCode) {
+                            departure = airports[item];
+                        } else if (obj[prop].segments[count].arrival.airport === airports[item].iataCode) {
+                            arrival = airports[item];
+                        }
+                    }
+                    var flight = {
+                        flightId: null,
+                        departureDate: obj[prop].segments[0].departure.time.split("T")[0],
+                        arrivalDate: obj[prop].segments[count].arrival.time.split("T")[0],
+                        duration: obj[prop].duration,
+                        price: price,
+                        departure: departure,
+                        arrival: arrival,
+                        segment: fixSegments(obj[prop].segments)
+
+                    };
+                    flights.flights.flight.push(flight);
+                }
+                return flights;
+            }
+            function fixAirlines(obj) {
+                var airlines = [];
+                for (var prop in obj) {
+                    var airline = {
+                        airline: {
+                            airlineCode: prop,
+                            name: obj[prop].name}
+                    };
+                    airlines.push(airline);
+                }
+                return airlines;
+            }
+            function fixSegments(obj) {
+                var segment = [];
+                for (var item in obj) {
+                    var departure, arrival;
+                    for (var i in airports) {
+                        if (obj[item].departure.airport === airports[i].iataCode) {
+                            departure = airports[i];
+                        } else if (obj[item].arrival.airport === airports[i].iataCode) {
+                            arrival = airports[i];
+                        }
+                    }
+                    var tmp = {
+                        segmentId: null,
+                        flightNumber: obj[item].flight_number,
+                        departureTime: obj[item].departure.time,
+                        arrivalTime: obj[item].arrival.time,
+                        duration: obj[item].duration,
+                        position: item,
+                        airlineCode: {
+                            airlineCode: obj[item].airline,
+                            name: null
+                        },
+                        departure: departure,
+                        arrival: arrival,
+                        flightList: null
+
+                    };
+                    if (typeof tmp.arrival === 'undefined') {
+                        console.log("");
+                    }
+                    segment.push(tmp);
+                }
+                return segment;
+            }
+
+            function OBJtoXML(obj) {
+                var xml = '';
+                for (var prop in obj) {
+                    xml += obj[prop] instanceof Array ? '' : "<" + prop + ">";
+                    if (obj[prop] instanceof Array) {
+                        for (var array in obj[prop]) {
+                            xml += "<" + prop + ">";
+                            xml += OBJtoXML(new Object(obj[prop][array]));
+                            xml += "</" + prop + ">";
+                        }
+                    } else if (typeof obj[prop] === "object") {
+                        xml += OBJtoXML(new Object(obj[prop]));
+                    } else {
+                        xml += obj[prop];
+                    }
+                    xml += obj[prop] instanceof Array ? '' : "</" + prop + ">";
+                }
+                //                var xml = xml.replace(/<\/?[0-9]{1,}>/g, '');
+                return xml;
+            }
+            function dosomething() {
+                results;
+            }
+            function startCrawler() {
+                for (var i = 0; i < 5; i++) {
+                    if (current >= airports.length)
+                        break;
+                    startCrawling(current);
+                    current++;
+                }
+
+            }
+            window.onload = function () {
+                getAirportsForCrawling();
+                getAllAirports();
+            }
+            function crawlCountryCost() {
+                var xmlHttp = getXmlHttpObject();
+                if (xmlHttp === null) {
+                    alert("Your Browser not support AJAX");
+                    return;
+                }
+                var url = "http://localhost:8080/Final_Project_WebService/countryCostCrawl";
+                xmlHttp.onreadystatechange = function () {
+                    if (this.readyState === 4 && this.status === 200) {
+                        console.log("aaa");
+                    }
+                };
+                xmlHttp.open("GET", url, true);
+                xmlHttp.send(null);
+            }
+        </script>
+    </head>
+    <body>
+        <h3 class="text-primary text-center">Flight Crawler</h3>
+        <a class="btn btn-primary" href="http://localhost:8080/Final_Project_Client/index.html">
+            Home
+        </a>
+        <div id="flightCount" class="alert alert-primary" role="alert" style="width: 250px; margin-left: 20px">
+            0 flight batch(s) inserted.
+        </div>
+        <button id="btnLogin" type="button" class="btn btn-primary" onclick="crawlCountryCost()">
+            Crawl country cost
+        </button>
+        <div class="table-wrapper-scroll-y my-custom-scrollbar" style="margin: 10px">
+
+            <table id="tableAirport" class="table table-bordered table-striped mb-0 table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">IATA code</th>
+                        <th scope="col">Airport name</th>
+                        <th scope="col">City</th>
+                        <th scope="col">Country code</th>
+                        <th scope="col">Country name</th>
+                        <th scope="col">Continent</th>
+                        <th scope="col"></th>
+                        <th scope="col">Status</th>                        
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+
+        </div>
+        <!--        <div class="container py-5">
+                    <div class="row">
+                        <div class="col-md-10 mx-auto">
+                            <form>
+                                <div class="form-group row">
+                                    <div class="col-sm-6">
+                                        <label for="departure_date">Departure date</label>
+                                        <input type="text" class="form-control" id="departure_date" placeholder="Departure date">
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label for="arrival_date">Arrival date</label>
+                                        <input type="text" class="form-control" id="arrival_date" placeholder="Arrival date">
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>-->
+        <div class="container" style="margin-bottom: 100px;">
+            <div class="row">
+                <div class="col text-center">
+                    <button type="button" class="btn btn-primary btn-lg btn-block bg-success" onclick="startCrawler()">Crawl 5 each</button>
+                </div>
+                <div class="col text-center">
+                    <button type="button" class="btn btn-primary btn-lg btn-block bg-primary" onclick="executeAllFlights()">Insert all flights</button>
+                </div>
+            </div>
+        </div>
+        <script src="jquery.min.js"></script>
+        <script src="bootstrap.min.js"></script>
+    </body>
+</html>
