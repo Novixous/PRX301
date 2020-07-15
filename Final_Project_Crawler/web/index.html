@@ -219,7 +219,7 @@ and open the template in the editor.
                 var destination = crawlAirports[i].iataCode;
 //                var start = crawlAirports[i].iataCode;
                 var today = new Date();
-                for (var j = 0; j < 6; j++) {
+                for (var j = 13; j < 19; j++) {
                     var date = new Date(today.getTime() + j * 24 * 60 * 60 * 1000);
                     var dd = String(date.getDate()).padStart(2, '0');
                     var mm = String(date.getMonth() + 1).padStart(2, '0');
@@ -485,14 +485,34 @@ and open the template in the editor.
                 getAirportsForCrawling();
                 getAllAirports();
             }
-
+            function crawlCountryCost() {
+                var xmlHttp = getXmlHttpObject();
+                if (xmlHttp === null) {
+                    alert("Your Browser not support AJAX");
+                    return;
+                }
+                var url = "http://localhost:8080/Final_Project_WebService/countryCostCrawl";
+                xmlHttp.onreadystatechange = function () {
+                    if (this.readyState === 4 && this.status === 200) {
+                        console.log("aaa");
+                    }
+                };
+                xmlHttp.open("GET", url, true);
+                xmlHttp.send(null);
+            }
         </script>
     </head>
     <body>
         <h3 class="text-primary text-center">Flight Crawler</h3>
+        <a class="btn btn-primary" href="http://localhost:8080/Final_Project_Client/index.html">
+            Home
+        </a>
         <div id="flightCount" class="alert alert-primary" role="alert" style="width: 200px; margin-left: 20px">
             0 flight(s) inserted.
         </div>
+        <button id="btnLogin" type="button" class="btn btn-primary" onclick="crawlCountryCost()">
+            Crawl country cost
+        </button>
         <div class="table-wrapper-scroll-y my-custom-scrollbar" style="margin: 10px">
 
             <table id="tableAirport" class="table table-bordered table-striped mb-0 table-hover">

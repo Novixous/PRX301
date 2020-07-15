@@ -14,10 +14,11 @@ import javax.persistence.ConstructorResult;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
 import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
@@ -68,17 +69,14 @@ public class Airport implements Serializable {
     private String name;
     @Column(name = "type")
     private Integer type;
-    @OneToMany(mappedBy = "departure")
-    private List<Flight> flightList;
-    @OneToMany(mappedBy = "arrival")
-    private List<Flight> flightList1;
+    @JoinTable(name = "Visited", joinColumns = {
+        @JoinColumn(name = "iata_code", referencedColumnName = "iata_code")}, inverseJoinColumns = {
+        @JoinColumn(name = "user_name", referencedColumnName = "username")})
+    @ManyToMany
+    private List<User> userList;
     @JoinColumn(name = "country", referencedColumnName = "Code")
     @ManyToOne
     private Country country;
-    @OneToMany(mappedBy = "departure")
-    private List<Segment> segmentList;
-    @OneToMany(mappedBy = "arrival")
-    private List<Segment> segmentList1;
 
     public Airport() {
     }
@@ -128,21 +126,12 @@ public class Airport implements Serializable {
     }
 
     @XmlTransient
-    public List<Flight> getFlightList() {
-        return flightList;
+    public List<User> getUserList() {
+        return userList;
     }
 
-    public void setFlightList(List<Flight> flightList) {
-        this.flightList = flightList;
-    }
-
-    @XmlTransient
-    public List<Flight> getFlightList1() {
-        return flightList1;
-    }
-
-    public void setFlightList1(List<Flight> flightList1) {
-        this.flightList1 = flightList1;
+    public void setUserList(List<User> userList) {
+        this.userList = userList;
     }
 
     public Country getCountry() {
@@ -151,24 +140,6 @@ public class Airport implements Serializable {
 
     public void setCountry(Country country) {
         this.country = country;
-    }
-
-    @XmlTransient
-    public List<Segment> getSegmentList() {
-        return segmentList;
-    }
-
-    public void setSegmentList(List<Segment> segmentList) {
-        this.segmentList = segmentList;
-    }
-
-    @XmlTransient
-    public List<Segment> getSegmentList1() {
-        return segmentList1;
-    }
-
-    public void setSegmentList1(List<Segment> segmentList1) {
-        this.segmentList1 = segmentList1;
     }
 
     @Override
@@ -195,5 +166,5 @@ public class Airport implements Serializable {
     public String toString() {
         return "webservice.dtos.Airport[ iataCode=" + iataCode + " ]";
     }
-
+    
 }

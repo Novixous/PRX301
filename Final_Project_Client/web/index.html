@@ -3,9 +3,9 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <script src="jquery.min.js"></script>
         <link rel="stylesheet" href="bootstrap.min.css">
-        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
-        <script src="https://unpkg.com/gijgo@1.9.13/js/gijgo.min.js" type="text/javascript"></script>
-        <link href="https://unpkg.com/gijgo@1.9.13/css/gijgo.min.css" rel="stylesheet" type="text/css" />
+        <link href="css/font-awesome.min.css" rel="stylesheet">
+        <script src="gijgo.min.js" type="text/javascript"></script>
+        <link href="gijgo.min.css" rel="stylesheet" type="text/css" />
         <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
@@ -109,8 +109,11 @@
                 color: white!important;
                 font-weight: bolder!important;
             }
-            .btn{
+            #myCarousel .btn{
                 background-color: #ffffff;
+            }
+            #myCarousel .btn:hover{
+                background-color: #505050;
             }
             .trip {
                 border: solid 1px #e0e0e0;
@@ -317,11 +320,27 @@
                 flex-direction: column;
                 justify-content: center;
             }
+            .card p{
+                color: #434343!important;
+            }
+
+            .bookingContainer{
+                margin-top: -100px;
+                margin-bottom: 150px;
+            }
 
 
         </style>
         <script>
 
+
+
+            var fullname = "";
+            var username = "";
+            var role = 0;
+            var departureFlight;
+            var returnFlight;
+            var returnFlight;
             var currentQuestion = 0;
             var peopleCount = 0;
             var dayCount = 0;
@@ -330,6 +349,85 @@
             var timeWeight;
             var mostArrivalWeight;
             var layoverWeight;
+            function setCookie(cname, cvalue, exdays) {
+                var d = new Date();
+                d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+                var expires = "expires=" + d.toUTCString();
+                document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+            }
+            function getCookie(cname) {
+                var name = cname + "=";
+                var decodedCookie = decodeURIComponent(document.cookie);
+                var ca = decodedCookie.split(';');
+                for (var i = 0; i < ca.length; i++) {
+                    var c = ca[i];
+                    while (c.charAt(0) == ' ') {
+                        c = c.substring(1);
+                    }
+                    if (c.indexOf(name) == 0) {
+                        return c.substring(name.length, c.length);
+                    }
+                }
+                return "";
+            }
+            function login() {
+                var loginUsername = document.getElementById("loginUsername").value;
+                var loginPassword = document.getElementById("loginPassword").value;
+                var rememberCheck = document.getElementById("rememberCheck").checked;
+                var xmlHttp = getXmlHttpObject();
+                if (xmlHttp === null) {
+                    alert("Your Browser not support AJAX");
+                    return;
+                }
+                var url = "http://localhost:8080/Final_Project_WebService/user?username=" + loginUsername + "&password=" + loginPassword;
+                if (rememberCheck == true) {
+                    xmlHttp.onreadystatechange = function () {
+                        if (this.readyState === 4 && this.status === 200) {
+                            var parser = new DOMParser();
+                            var xmlDOM = parser.parseFromString(this.responseText, "application/xml");
+                            username = getElementsByXPath("//username", xmlDOM)[0].firstChild.nodeValue;
+                            role = getElementsByXPath("//role", xmlDOM)[0].firstChild.nodeValue;
+                            fullname = getElementsByXPath("//fullName", xmlDOM)[0].firstChild.nodeValue;
+                            if (role === 1) {
+                                document.getElementById("adminBtn").style.visibility = "visible";
+                            }
+                            setCookie("username", username, 7);
+                            setCookie("role", role, 7);
+                            setCookie("fullname", fullname, 7);
+
+                            document.getElementById("welcome").innerHTML = "Welcome back " + fullname;
+                            document.getElementById("loginCloseBtn").click();
+                            window.location.reload(true);
+
+                        } else if (this.readyState === 4 && this.status === 204) {
+                            document.getElementById("loginAlert").style.display = "block";
+                        }
+                    };
+                } else {
+                    xmlHttp.onreadystatechange = function () {
+                        if (this.readyState === 4 && this.status === 200) {
+                            var parser = new DOMParser();
+                            var xmlDOM = parser.parseFromString(this.responseText, "application/xml");
+                            username = getElementsByXPath("//khanglna", xmlDOM)[0].firstChild.nodeValue;
+                            role = getElementsByXPath("//role", xmlDOM)[0].firstChild.nodeValue;
+                            if (role === 1) {
+                                document.getElementById("adminBtn").style.visibility = "visible";
+                            }
+                            fullname = getElementsByXPath("//fullName")[0].firstChild.nodeValue;
+                            document.getElementById("welcome").innerHTML = "Welcome back " + fullname;
+                            document.getElementById("loginCloseBtn").click();
+
+                        } else if (this.readyState === 4 && this.status === 204) {
+                            document.getElementById("loginAlert").style.display = "block";
+                        }
+                    }
+                }
+                xmlHttp.open("GET", url, true);
+                xmlHttp.send(null);
+            }
+            function delete_cookie(name) {
+                document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+            }
             function nextQuestion() {
                 var items = document.getElementsByClassName("carousel-item");
                 switch (currentQuestion) {
@@ -369,32 +467,405 @@
                 } else {
                     document.getElementById("myCarousel").style.display = "None";
                     document.getElementById("flightsContainer").style.display = "Block";
+                    getSuitableFlight(false);
                 }
 
             }
 
             function costSurvey(value) {
-                costWeight = value;
+                costWeight = ++value;
                 nextQuestion();
             }
 
             function timeSurvey(value) {
-                timeWeight = value;
+                timeWeight = ++value;
                 nextQuestion();
             }
 
             function mostArrivalSurvey(value) {
-                mostArrivalWeight = value;
+                mostArrivalWeight = ++value;
                 nextQuestion();
             }
 
             function layoverSurvey(value) {
-                layoverWeight = value;
+                layoverWeight = ++value;
                 nextQuestion();
+            }
+
+            function getXmlHttpObject() {
+                var xmlHttp = null;
+                try {// firefox, opera 8.0+, safari
+                    xmlHttp = new XMLHttpRequest();
+                } catch (e) {
+                    try {// IE
+                        xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
+                    } catch (e) {
+                        xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+                    }
+                }
+                return xmlHttp;
+            }
+            function getElementsByXPath(xpath, parent)
+            {
+                let results = [];
+                let query = document.evaluate(xpath, parent || document,
+                        null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+                for (let i = 0, length = query.snapshotLength; i < length; ++i) {
+                    results.push(query.snapshotItem(i));
+                }
+                return results;
+            }
+            function fixSegments(obj) {
+                var segment = [];
+                for (var item in obj) {
+                    var departure, arrival;
+                    for (var i in airports) {
+                        if (obj[item].departure.airport === airports[i].iataCode) {
+                            departure = airports[i];
+                        } else if (obj[item].arrival.airport === airports[i].iataCode) {
+                            arrival = airports[i];
+                        }
+                    }
+                    var tmp = {
+                        segmentId: null,
+                        flightNumber: obj[item].flight_number,
+                        departureTime: obj[item].departure.time,
+                        arrivalTime: obj[item].arrival.time,
+                        duration: obj[item].duration,
+                        position: item,
+                        airlineCode: {
+                            airlineCode: obj[item].airline,
+                            name: null
+                        },
+                        departure: departure,
+                        arrival: arrival,
+                        flightList: null
+
+                    };
+                    if (typeof tmp.arrival === 'undefined') {
+                        console.log("");
+                    }
+                    segment.push(tmp);
+                }
+                return segment;
+            }
+            function parseFlightXMLToObject(xmlDOM) {
+                var segments = getElementsByXPath("//segmentList", xmlDOM);
+                if (getElementsByXPath("//segmentList", xmlDOM)[0] === undefined) {
+                    return null;
+                }
+                var resultSegments = [];
+                for (var i = 0; i < segments.length; i++) {
+                    var segment = {
+                        flightNumber: getElementsByXPath("airlineCode/airlineCode", segments[i])[0].firstChild.nodeValue + getElementsByXPath("flightNumber", segments[i])[0].firstChild.nodeValue,
+                        departureCode: getElementsByXPath("departure/iataCode", segments[i])[0].firstChild.nodeValue,
+                        departureCity: getElementsByXPath("departure/city", segments[i])[0].firstChild.nodeValue,
+                        arrivalCode: getElementsByXPath("arrival/iataCode", segments[i])[0].firstChild.nodeValue,
+                        arrivalCity: getElementsByXPath("arrival/city", segments[i])[0].firstChild.nodeValue,
+                        departureTime: getElementsByXPath("departureTime", segments[i])[0].firstChild.nodeValue,
+                        arrivalTime: getElementsByXPath("arrivalTime", segments[i])[0].firstChild.nodeValue,
+                        duration: getElementsByXPath("duration", segments[i])[0].firstChild.nodeValue,
+                        stayCost: getElementsByXPath("arrival/country/countryTravelCost/costMedium", segments[i])[0].firstChild.nodeValue,
+                        arrivalCountry: getElementsByXPath("arrival/country/name", segments[i])[0].firstChild.nodeValue
+                    }
+                    resultSegments.push(segment);
+                }
+                var flight = {
+                    duration: getElementsByXPath("//flight/duration", xmlDOM)[0].firstChild.nodeValue,
+                    price: getElementsByXPath("//price", xmlDOM)[0].firstChild.nodeValue,
+                    segments: resultSegments,
+                    stayCost: getElementsByXPath("//flight/arrival/country/countryTravelCost/costMedium", xmlDOM)[0].firstChild.nodeValue,
+                    arrivalCountry: getElementsByXPath("//arrival/country/name", xmlDOM)[0].firstChild.nodeValue
+                }
+                return flight;
+            }
+            function getSuitableFlight(again) {
+                reloadResult();
+                var xmlHttp = getXmlHttpObject();
+                if (xmlHttp === null) {
+                    alert("Your Browser not support AJAX");
+                    return;
+                }
+                if (!again) {
+                    var dateArray = dateDeparture.split("/");
+                    dateDeparture = dateArray[2] + "-" + dateArray[0] + "-" + dateArray[1];
+                }
+                var url = "http://localhost:8080/Final_Project_WebService/flight?dateDeparture=" + dateDeparture
+                        + "&costWeight=" + (costWeight)
+                        + "&timeWeight=" + (timeWeight)
+                        + "&mostArrivalWeight=" + (mostArrivalWeight)
+                        + "&layoverWeight=" + (layoverWeight);
+                xmlHttp.onreadystatechange = function () {
+                    if (this.readyState === 4 && this.status === 200) {
+                        var parser = new DOMParser();
+                        var xmlDOM = parser.parseFromString(this.responseText, "application/xml");
+                        departureFlight = parseFlightXMLToObject(xmlDOM);
+                        if (departureFlight !== null) {
+                            addFlight(departureFlight, "departure-flight");
+                            getReturnFlight();
+                            createFlightBook("departureFlightBookContainer", departureFlight);
+                        } else {
+                            $('#myModal').modal('toggle');
+                        }
+                    }
+                };
+                xmlHttp.open("GET", url, true);
+                xmlHttp.send(null);
+            }
+            function formateDate(value, plusDay) {
+                var tmp = new Date(value);
+                var date = new Date(tmp.getTime() + plusDay * 24 * 60 * 60 * 1000);
+                var dd = String(date.getDate()).padStart(2, '0');
+                var mm = String(date.getMonth() + 1).padStart(2, '0');
+                var yyyy = date.getFullYear();
+                date = yyyy + '-' + mm + '-' + dd;
+                return date;
+            }
+            function getReturnFlight() {
+                var date = formateDate(departureFlight.segments[departureFlight.segments.length - 1].arrivalTime, 5);
+                var xmlHttp = getXmlHttpObject();
+                if (xmlHttp === null) {
+                    alert("Your Browser not support AJAX");
+                    return;
+                }
+                var url = "http://localhost:8080/Final_Project_WebService/flight/return?dateDeparture=" + date + "&from=" + departureFlight.segments[departureFlight.segments.length - 1].arrivalCode + "&to=SGN";
+                xmlHttp.onreadystatechange = function () {
+                    if (this.readyState === 4 && this.status === 200) {
+                        var parser = new DOMParser();
+                        var xmlDOM = parser.parseFromString(this.responseText, "application/xml");
+                        returnFlight = parseFlightXMLToObject(xmlDOM);
+                        addFlight(returnFlight, "return-flight");
+                        createFlightBook("arrivalFlightBookContainer", returnFlight);
+
+                    } else if (this.readyState === 4 && this.status === 500) {
+                        getSuitableFlight(true);
+                    }
+                };
+                xmlHttp.open("GET", url, true);
+                xmlHttp.send(null);
+            }
+            function differenceTime(startTime, endTime) {
+                startTime = (new Date(startTime));
+                endTime = (new Date(endTime));
+                var difference = (endTime.getTime() - startTime.getTime()) / 1000;
+                return secondsToHourMinuteString(difference);
+            }
+            function getTimeFromString(time) {
+                var date = new Date(time);
+                return date.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    hour12: true,
+                    minute: '2-digit',
+//                  timeZone: timeZone
+                }).replace(" ", "").toLowerCase();
+            }
+            function secondsToHourMinuteString(seconds) {
+                var hr = Math.floor(seconds / 60 / 60);
+                var mn = Math.floor(seconds / 60) - (hr * 60);
+                return hr + "h " + mn + "m";
+            }
+            function addFlight(flight, id) {
+                var trip_list = document.getElementById(id);
+                var trip_html =
+                        "<div class=\"trip\">" +
+                        "<div class=\"trip-duration\">" +
+                        Math.ceil(flight.duration / 3600) + "h" +
+                        "<span class=\"trip-stops\">" + (flight.segments.length - 1) + " stops</span>" +
+                        "</div>" +
+                        "<div class=\"span9 trip-path\">";
+                for (var i = 0; i < flight.segments.length; i++) {
+                    if (i === 0) {
+                        trip_html +=
+                                "<div class=\"trip-path-point\" style=\"width: 10%\">" +
+                                "<div class=\"trip-path-point-time \">" + getTimeFromString(flight.segments[i].departureTime) + "</div>" +
+                                "<div class=\"trip-path-point-airport\">" +
+                                "<span class=\"airport-code\">" + flight.segments[i].departureCode + "</span>" +
+                                "<span class=\"airport-city\">" + flight.segments[i].departureCity + "</span>" +
+                                "</div>" +
+                                "</div>" +
+                                "<div class=\"trip-path-spacer\" style=\"width: 10%;\">" +
+                                "<div class=\"trip-path-spacer-label\">" + secondsToHourMinuteString(flight.segments[i].duration) + "</div>" +
+                                "<div class=\"trip-path-point-airport\">" +
+                                "<span class=\"airport-code\"></span>" +
+                                "<span class=\"airport-city\"></span>" +
+                                "</div>" +
+                                "<div class=\"trip-path-spacer-arrow-wrapper\" style=\"width: 100%;\">" +
+                                "<span class=\"trip-path-spacer-line\">" +
+                                "<div></div>" +
+                                "</span>" +
+                                "</div>" +
+                                "</div>" +
+                                "<div class=\"trip-path-point trip-path-point-airport-demp same-layover\">" +
+                                "<div class=\"trip-path-point-time\">" + getTimeFromString(flight.segments[i].arrivalTime) + "</div>" +
+                                "<div class=\"trip-path-point-airport\">" +
+                                "<span class=\"airport-code\">" + flight.segments[i].arrivalCode + "</span>" +
+                                "<span class=\"airport-city\">" + flight.segments[i].arrivalCity + "</span>" +
+                                "</div>" +
+                                "</div>";
+                    }
+                    if (i > 0 && i < (flight.segments.length - 1)) {
+                        trip_html +=
+                                "<div class=\"trip-path-spacer same-layover\" style=\"width: 10%;\">" +
+                                "<div class=\"trip-path-spacer-label\">" + differenceTime(flight.segments[i - 1].arrivalTime, flight.segments[i].departureTime) + "</div>" +
+                                "<div class=\"trip-path-point-airport\">" +
+                                "<span class=\"airport-code\">" + flight.segments[i].departureCode + "</span>" +
+                                "<span class=\"airport-city\">" + flight.segments[i].departureCity + "</span>" +
+                                "</div>" +
+                                "<div class=\"trip-path-spacer-arrow-wrapper trip-path-spacer-arrow-layover\" style=\"width: 100%;\">" +
+                                "<span class=\"trip-path-spacer-line\">" +
+                                "<div></div>" +
+                                "</span>" +
+                                "</div>" +
+                                "</div>" +
+                                "<div class=\"trip-path-point trip-path-point-airport-demp\">" +
+                                "<div class=\"trip-path-point-time\">" + getTimeFromString(flight.segments[i].departureTime) + "</div>" +
+                                "<div class=\"trip-path-point-airport\">" +
+                                "<span class=\"airport-code\">" + flight.segments[i].departureCode + "</span>" +
+                                "<span class=\"airport-city\">" + flight.segments[i].departureCity + "</span>" +
+                                "</div>" +
+                                "</div>" +
+                                " <div class=\"trip-path-spacer\" style=\"width: 10%;\">" +
+                                "<div class=\"trip-path-spacer-label\">" + secondsToHourMinuteString(flight.segments[i].duration) + "</div>" +
+                                "<div class=\"trip-path-point-airport\">" +
+                                "<span class=\"airport-code\"></span>" +
+                                "<span class=\"airport-city\"></span>" +
+                                "</div>" +
+                                " <div class=\"trip-path-spacer-arrow-wrapper\" style=\"width: 100%;\">" +
+                                "<span class=\"trip-path-spacer-line\">" +
+                                "<div></div>" +
+                                "</span>" +
+                                "</div>" +
+                                "</div>" +
+                                "<div class=\"trip-path-point trip-path-point-airport-demp same-layover\">" +
+                                "<div class=\"trip-path-point-time\">" + getTimeFromString(flight.segments[i].arrivalTime) + "</div>" +
+                                "<div class=\"trip-path-point-airport\">" +
+                                "<span class=\"airport-code\">" + flight.segments[i].arrivalCode + "</span>" +
+                                "<span class=\"airport-city\">" + flight.segments[i].arrivalCity + "</span>" +
+                                "</div>" +
+                                "</div>";
+                    }
+                    if (i === (flight.segments.length - 1)) {
+                        trip_html +=
+                                "<div class=\"trip-path-spacer same-layover\" style=\"width: 10%;\">" +
+                                "<div class=\"trip-path-spacer-label\">" + differenceTime(flight.segments[i - 1].arrivalTime, flight.segments[i].departureTime) + "</div>" +
+                                "<div class=\"trip-path-point-airport\">" +
+                                "<span class=\"airport-code\">" + flight.segments[i].departureCode + "</span>" +
+                                "<span class=\"airport-city\">" + flight.segments[i].departureCity + "</span>" +
+                                "</div>" +
+                                "<div class=\"trip-path-spacer-arrow-wrapper trip-path-spacer-arrow-layover\" style=\"width: 100%;\">" +
+                                "<span class=\"trip-path-spacer-line\">" +
+                                "<div></div>" +
+                                "</span>" +
+                                "</div>" +
+                                "</div>" +
+                                "<div class=\"trip-path-point trip-path-point-airport-demp\">" +
+                                "<div class=\"trip-path-point-time\">" + getTimeFromString(flight.segments[i].departureTime) + "</div>" +
+                                "<div class=\"trip-path-point-airport\">" +
+                                "<span class=\"airport-code\">" + flight.segments[i].departureCode + "</span>" +
+                                "<span class=\"airport-city\">" + flight.segments[i].departureCity + "</span>" +
+                                "</div>" +
+                                "</div>" +
+                                "<div class=\"trip-path-spacer\" style=\"width: 10%;\">" +
+                                "<div class=\"trip-path-spacer-label\">" + secondsToHourMinuteString(flight.segments[i].duration) + "</div>" +
+                                "<div class=\"trip-path-point-airport\">" +
+                                "<span class=\"airport-code\"></span>" +
+                                "<span class=\"airport-city\"></span></div>" +
+                                "<div class=\"trip-path-spacer-arrow-wrapper\" style=\"width: 100%;\">" +
+                                "<span class=\"trip-path-spacer-line\">" +
+                                "<div></div>" +
+                                "</span></div>" +
+                                "</div>" +
+                                "<div class=\"trip-path-point\">" +
+                                "<div class=\"trip-path-point-time\">" + getTimeFromString(flight.segments[i].arrivalTime) + "</div>" +
+                                "<div class=\"trip-path-point-airport\">" +
+                                "<span class=\"airport-code\">" + flight.segments[i].arrivalCode + "</span>" +
+                                "<span class=\"airport-city\">" + flight.segments[i].arrivalCity + "</span>" +
+                                "</div>" +
+                                "</div>";
+                    }
+                }
+                trip_html +=
+                        "</div>" +
+                        "<div class=\"trip-cost text-success\">" +
+                        "<p class=\"\">$" + flight.price.substring(0, flight.price.length - 4) + "</p>" +
+                        "</div>"
+                trip_list.innerHTML = trip_list.innerHTML + trip_html
+
+            }
+            function refreshPage() {
+                window.location.reload();
+            }
+            function reloadResult() {
+                document.getElementById("departure-flight").innerHTML = "";
+                document.getElementById(("return-flight")).innerHTML = "";
+                document.getElementById("departureFlightBookContainer").innerHTML = "";
+                document.getElementById("arrivalFlightBookContainer").innerHTML = "";
+            }
+            window.onload = function () {
+                username = getCookie("username");
+                fullname = getCookie("fullname");
+                role = getCookie("role");
+                if (username != "" && fullname != "") {
+                    document.getElementById("btnLogin").style.display = "none";
+                    document.getElementById("btnRegister").style.display = "none";
+                    document.getElementById("welcome").innerHTML = 'Welcome back ' + fullname;
+                    if (role == 1) {
+                        document.getElementById("adminBtn").style.visibility = 'visible';
+                    }
+                } else {
+                    document.getElementById("btnLogout").style.display = "none";
+
+                }
+            }
+            function logout() {
+                delete_cookie("username");
+                delete_cookie("role");
+                delete_cookie("fullname");
+                window.location.reload(true);
             }
         </script>
     </head>
     <body style="background-color:  wheat">
+        <nav class="navbar navbar-dark bg-dark" style="background-color: #e3f2fd;">
+            <div>
+                <h5 id="welcome" class="bg-success"></h5>
+            </div>
+            <div>
+                <a id="adminBtn" href="http://localhost:8080/Final_Project_Crawler/index.html" class="btn btn-primary" style="color: white; visibility: hidden">
+                    Admin
+                </a>
+                <button id="btnLogout" type="button" class="btn btn-danger" onclick="logout()">
+                    Logout
+                </button>
+                <button id="btnLogin" type="button" class="btn btn-primary" data-toggle="modal" data-target="#login">
+                    Login
+                </button>
+                <button id="btnRegister" type="button" class="btn btn-primary" data-toggle="modal" data-target="#register">
+                    Register
+                </button>
+            </div>
+
+        </nav>
+        <!-- Modal -->
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">We are sorry!</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        There is no flight result for the date you picked. Please try again.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="refreshPage()">Do survey again</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="fixed-top my-5" id="heading"  style="width: 100%">
             <h2 class="display-2" style="text-align: center; color: coral">Lets us select your suitable travel</h2>
         </div>
@@ -575,160 +1046,138 @@
                         </div>                       
                     </div>
                 </div>
+                <script>
+                    function createFlightBook(id, flight) {
+                        document.getElementsByClassName("bookingContainer")[0].style.display = "block";
+                        var flightBookContainer = document.getElementById(id);
+                        var htmlContent = "";
+                        for (var i = 0; i < flight.segments.length; i++) {
+                            var segment = flight.segments[i];
+                            htmlContent +=
+                                    "<div class=\"col-sm\">" +
+                                    "<div class=\"card\" style=\"width: 18rem;\">" +
+                                    "<div class=\"card-body\">" +
+                                    "<h5 class=\"card-title\">" + segment.arrivalCity + "</h5>" +
+                                    "<p class=\"card-text\">This country has the average daily cost for a person is " + segment.stayCost + " $.</p>" +
+                                    "</div>" +
+                                    "<ul class=\"list-group list-group-flush\">" +
+                                    "<li class=\"list-group-item\">Departure: " + segment.departureCity + "</li>" +
+                                    "<li class=\"list-group-item\">Departure time: " + segment.departureTime + "</li>" +
+                                    "<li class=\"list-group-item\">Arrival: " + segment.arrivalCity + "</li>" +
+                                    "<li class=\"list-group-item\">Arrival time: " + segment.arrivalTime + "</li>" +
+                                    "</ul>" +
+                                    "<div class=\"card-body\">" +
+                                    "<a href=\"https://skiplagged.com/flights/" + segment.departureCode + "/" + segment.arrivalCode + "/" + formateDate(segment.departureTime, 0) + "#trip=" + segment.flightNumber + "\" target=\"_blank\" class=\"card-link\">Book Now</a>" +
+                                    "</div>" +
+                                    "</div>" +
+                                    "</div>";
 
-                <div id="flightsContainer" style="display: None">
+                        }
+                        flightBookContainer.innerHTML = htmlContent;
+
+                    }
+                </script>
+                <div id="flightsContainer" style="display: none">
                     <h2 class="display-2" style="text-align: center; color: coral;">Flights result</h2>
-                    <div class="trip-list">
-                        <div class="trip">
-                            <div class="trip-duration">
-                                <!-- react-text: 858 -->54h<!-- /react-text -->
-                                <span class="trip-stops">3 stops</span>
+                    <h6 class="display-1120">Departure Flight</h6>
+                    <div id="departure-flight" class="trip-list">
+
+                    </div>
+                    <h6 class="display-1120">Return Flight</h6>
+                    <div id="return-flight" class="trip-list">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div  class="container bookingContainer" style="display: none">
+            <h6 class="display-1120">Departure Flight</h6>
+            <div id="departureFlightBookContainer" class="row">
+
+            </div>
+            <h6 class="display-1120">Return Flight</h6>
+            <div id="arrivalFlightBookContainer" class="row">
+
+            </div>
+        </div>
+
+
+        <!-- Modal -->
+        <div class="modal fade" id="login" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLongTitle">Login</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div id="loginAlert" class="alert alert-danger" role="alert" style="display: none">
+                                Wrong username or password
                             </div>
-                            <div class="span9 trip-path">
-                                <div class="trip-path-point" style="width: 10%">
-                                    <div class="trip-path-point-time ">10:45pm</div>
-                                    <div class="trip-path-point-airport">
-                                        <span class="airport-code">SGN
-                                        </span><span class="airport-city">Ho Chi Minh City</span></div>
-                                </div>
-                                <div class="trip-path-spacer" style="width: 10%;">
-                                    <div class="trip-path-spacer-label"> 2h 10m</div>
-                                    <div class="trip-path-point-airport">
-                                        <span class="airport-code"></span>
-                                        <span class="airport-city"></span></div>
-                                    <div class="trip-path-spacer-arrow-wrapper" style="width: 100%;"><span
-                                            class="trip-path-spacer-line">
-                                            <div></div>
-                                        </span></div>
-                                </div>
-                                <div class="trip-path-point trip-path-point-airport-demp same-layover">
-                                    <div class="trip-path-point-time">12:55am</div>
-                                    <div class="trip-path-point-airport">
-                                        <span class="airport-code">HAN</span>
-                                        <span class="airport-city">Hanoi</span>
-                                    </div>
-                                </div>
-                                <div class="trip-path-spacer same-layover" style="width: 10%;">
-                                    <div class="trip-path-spacer-label"> 9h 50m</div>
-                                    <div class="trip-path-point-airport">
-                                        <span class="airport-code">HAN</span>
-                                        <span class="airport-city">Hanoi</span>
-                                    </div>
-                                    <div class="trip-path-spacer-arrow-wrapper trip-path-spacer-arrow-layover" style="width: 100%;">
-                                        <span class="trip-path-spacer-line">
-                                            <div></div>
-                                        </span>
+                            <div class="form-group">
+                                <label for="exampleInputEmail1">Username</label>
+                                <input type="text" class="form-control" id="loginUsername" aria-describedby="emailHelp" placeholder="Enter username" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputPassword1">Password</label>
+                                <input type="password" class="form-control" id="loginPassword" placeholder="Password" required>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="rememberCheck">
+                                <label class="form-check-label" for="exampleCheck1">Remember me</label>
+                            </div>
+                            <button type="button" class="btn btn-primary" onClick="login()">Login</button>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="loginCloseBtn" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                                    </div>
-                                </div>
-                                <div class="trip-path-point trip-path-point-airport-demp">
-                                    <div class="trip-path-point-time">10:45am</div>
-                                    <div class="trip-path-point-airport">
-                                        <span class="airport-code">HAN</span>
-                                        <span class="airport-city">Hanoi</span>
-                                    </div>
-                                </div>
-                                <div class="trip-path-spacer" style="width: 15.7965%;">
-                                    <div class="trip-path-spacer-label"> 9h 50m</div>
-                                    <div class="trip-path-point-airport">
-                                        <span class="airport-code"></span>
-                                        <span class="airport-city"></span>
-                                    </div>
-                                    <div class="trip-path-spacer-arrow-wrapper" style="width: 100%;">
-                                        <span class="trip-path-spacer-line">
-                                            <div></div>
-                                        </span>
 
-                                    </div>
-                                </div>
-                                <div class="trip-path-point trip-path-point-airport-demp same-layover">
-                                    <div class="trip-path-point-time">4:35pm</div>
-                                    <div class="trip-path-point-airport">
-                                        <span class="airport-code">SVO</span>
-                                        <span class="airport-city">Moscow</span>
-                                    </div>
-                                </div>
-                                <div class="trip-path-spacer same-layover" style="width: 25.7028%;">
-                                    <div class="trip-path-spacer-label"> 16h</div>
-                                    <div class="trip-path-point-airport">
-                                        <span class="airport-code">SVO</span>
-                                        <span class="airport-city">Moscow</span>
-                                    </div>
-                                    <div class="trip-path-spacer-arrow-wrapper trip-path-spacer-arrow-layover" style="width: 100%;">
-                                        <span class="trip-path-spacer-line">
-                                            <div></div>
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="trip-path-point trip-path-point-airport-demp">
-                                    <div class="trip-path-point-time">8:35am</div>
-                                    <div class="trip-path-point-airport">
-                                        <span class="airport-code">SVO</span>
-                                        <span class="airport-city">Moscow</span>
-                                    </div>
-                                </div>
-                                <div class="trip-path-spacer" style="width: 6.29183%;">
-                                    <div class="trip-path-spacer-label"> 3h 55m</div>
-                                    <div class="trip-path-point-airport">
-                                        <span class="airport-code"></span>
-                                        <span class="airport-city"></span>
-                                    </div>
-                                    <div class="trip-path-spacer-arrow-wrapper" style="width: 100%;">
-                                        <span class="trip-path-spacer-line">
-                                            <div></div>
-                                        </span></div>
-                                </div>
-                                <div class="trip-path-point trip-path-point-airport-demp same-layover">
-                                    <div class="trip-path-point-time">11:30am</div>
-                                    <div class="trip-path-point-airport">
-                                        <span class="airport-code">FCO</span>
-                                        <span class="airport-city">Rome</span>
-                                    </div>
-                                </div>
-                                <div class="trip-path-spacer same-layover" style="width: 14.4578%;">
-                                    <div class="trip-path-spacer-label"> 9h</div>
-                                    <div class="trip-path-point-airport">
-                                        <span class="airport-code">FCO</span>
-                                        <span class="airport-city">Rome</span>
-                                    </div>
-                                    <div class="trip-path-spacer-arrow-wrapper trip-path-spacer-arrow-layover" style="width: 100%;"><span class="trip-path-spacer-line">
-                                            <div></div>
-                                        </span></div>
-                                </div>
-                                <div class="trip-path-point trip-path-point-airport-demp">
-                                    <div class="trip-path-point-time">8:30pm</div>
-                                    <div class="trip-path-point-airport">
-                                        <span class="airport-code">FCO</span>
-                                        <span class="airport-city">Rome</span>
-                                    </div>
-                                </div>
-                                <div class="trip-path-spacer" style="width: 2.67738%;">
-                                    <div class="trip-path-spacer-label"> 1h 40m</div>
-                                    <div class="trip-path-point-airport">
-                                        <span class="airport-code"></span>
-                                        <span class="airport-city"></span></div>
-                                    <div class="trip-path-spacer-arrow-wrapper" style="width: 100%;">
-                                        <span class="trip-path-spacer-line">
-                                            <div></div>
-                                        </span></div>
-                                </div>
-                                <div class="trip-path-point">
-                                    <div class="trip-path-point-time">10:10pm</div>
-                                    <div class="trip-path-point-airport">
-                                        <span class="airport-code">VIE</span>
-                                        <span class="airport-city">Vienna</span>
-                                    </div>
-                                </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="register" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLongTitle">Login</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="form-group">
+                                <label for="mail">Email address</label>
+                                <input type="email" name="mail" class="form-control" id="registerEmail" placeholder="Enter email"  required>
+                                <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>        
+                            </div>
+                            <div class="form-group">
+                                <label for="username">Username</label>
+                                <input type="text" name="username" class="form-control" id="registerUsername" aria-describedby="emailHelp" placeholder="Enter username" required="">
+                                <small id="emailHelp" class="form-text text-muted">Please choose a unique and valid username.</small>
+                            </div> 
+                            <div class="form-group">
+                                <label for="fullname">Full name</label>
+                                <input type="text" name="fullname" class="form-control" id="registerFullname" aria-describedby="emailHelp" placeholder="Enter full name" required="">
+                            </div>  
+                            <div class="form-group">
+                                <label for="registerPassword">Password</label>
+                                <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password" required="">
                             </div>
 
-                            <div class="trip-cost text-success">
-                                <p class="">$768</p>
-                            </div>
-
-
-                        </div>
-
-                    </div>  
+                            <button type="submit" class="btn btn-primary">Register</button>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
                 </div>
             </div>
         </div>

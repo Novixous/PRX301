@@ -32,5 +32,6 @@ public class StatisticUtils {
                 throw new Exception("Quartile from 1 to 3 only!");
 
         }
+        
     }
 }
