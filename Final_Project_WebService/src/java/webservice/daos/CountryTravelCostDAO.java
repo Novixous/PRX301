@@ -7,7 +7,6 @@ package webservice.daos;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
-import javax.persistence.Persistence;
 import webservice.dtos.CountryTravelCost;
 import webservice.utils.JPAUtil;
 
@@ -18,7 +17,7 @@ import webservice.utils.JPAUtil;
 public class CountryTravelCostDAO {
 
     public void insertEntity(CountryTravelCost countryTravelCost) {
-        EntityManager entityManager = Persistence.createEntityManagerFactory("Final_Project_WebServicePU").createEntityManager();
+        EntityManager entityManager = JPAUtil.getEntityManagerFactory().createEntityManager();
         EntityTransaction entityTransaction = entityManager.getTransaction();
         entityTransaction.begin();
         entityManager.persist(countryTravelCost);

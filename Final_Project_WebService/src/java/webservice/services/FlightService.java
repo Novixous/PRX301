@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -34,7 +35,9 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -53,6 +56,7 @@ import webservice.dtos.AirportArrivalCount;
 import webservice.dtos.Flight;
 import webservice.dtos.Segment;
 import webservice.utils.JPAUtil;
+import webservice.utils.MaxParameters;
 import webservice.utils.StatisticUtils;
 import webservice.utils.XMLUtils;
 
@@ -159,12 +163,15 @@ public class FlightService {
     @GET
     @Path("return")
     @Produces(MediaType.APPLICATION_XML)
-    public Flight getFlightReturn(
+    public Response getFlightReturn(
             @QueryParam("dateDeparture") String dateDeparture,
             @QueryParam("from") String depature,
-            @QueryParam("to") String arrival) {
+            @QueryParam("to") String arrival,
+            @QueryParam("position") int position) {
         FlightDAO flightDAO = new FlightDAO();
-        return flightDAO.find(dateDeparture, depature, arrival);
+        List<Flight> flights = flightDAO.find(dateDeparture, depature, arrival);      
+        Response response = Response.ok(flights.get(position)).header("max", flights.size()).build();
+        return response;
     }
 
     @GET
@@ -174,23 +181,22 @@ public class FlightService {
             @QueryParam("costWeight") int costWeight,
             @QueryParam("timeWeight") int timeWeight,
             @QueryParam("mostArrivalWeight") int mostArrivalWeight,
-            @QueryParam("layoverWeight") int layoverWeight) {
+            @QueryParam("layoverWeight") int layoverWeight,
+            @QueryParam("username") String username) {
 
         AirportDAO airportDAO = new AirportDAO();
-        List<AirportArrivalCount> list = airportDAO.getCityArrivalCount(null);
+        List<AirportArrivalCount> list = airportDAO.getCityArrivalCount(null, null);
         Collections.sort(list, Collections.reverseOrder());
         try {
             timeWeight = handleTimeWeight(timeWeight, costWeight);
-            switch (layoverWeight) {
-                case 1:
-                    layoverWeight = 0;
-                    break;
-                case 2:
-                    layoverWeight = costWeight + 2;
-                    break;
-            }
+            layoverWeight = handleLayoverWeight(layoverWeight, costWeight);
+
             AirportArrivalCount Q1ArrivalCount = StatisticUtils.findQuartile(1, list);
-            list = airportDAO.getCityArrivalCount(Double.parseDouble(Q1ArrivalCount.getArrivalCount().toString()));
+            if (username.isEmpty()) {
+                list = airportDAO.getCityArrivalCount(Double.parseDouble(Q1ArrivalCount.getArrivalCount().toString()), null);
+            } else {
+                list = airportDAO.getCityArrivalCount(Double.parseDouble(Q1ArrivalCount.getArrivalCount().toString()), username);
+            }
             List<String> cityNames = new ArrayList<>();
             HashMap<String, Integer> arrivalCountMap = new HashMap<>();
             for (AirportArrivalCount item : list) {
@@ -202,7 +208,7 @@ public class FlightService {
             List<Flight> flights = new ArrayList<>(flightDAO.getFlightOfCities(cityNames, dateDeparture));
             MaxParameters maxs = maxParameters(flights, arrivalCountMap);
             for (Flight flight : flights) {
-                Double scoreCost = 10.0 - (10.0 / maxs.getMaxCost() * flight.getPrice());
+                Double scoreCost = 10.0 - (10.0 / maxs.getMaxCost() * (flight.getPrice() + flight.getArrival().getCountry().getCountryTravelCost().getCostMedium()));
                 Double scoreArrival;
                 Double scoreDuration = 10.0 - (10.0 / maxs.getMaxDuration() * flight.getDuration());
                 Double scoreLayoverDuration = 10.0 / maxs.getMaxLayoverDuration() * getMaxLayoverSegment(flight.getSegmentList());
@@ -212,7 +218,7 @@ public class FlightService {
                     scoreArrival = 10.0 - (10.0 / maxs.getMaxArrival() * arrivalCountMap.get(flight.getArrival().getCity()));
                     switch (mostArrivalWeight) {
                         case 1:
-                            tmpMostArrivalWeight = costWeight + 2;
+                            tmpMostArrivalWeight = costWeight + 4;
                             break;
                         case 2:
                             tmpMostArrivalWeight = costWeight + 1;
@@ -226,7 +232,7 @@ public class FlightService {
                             tmpMostArrivalWeight = costWeight + 1;
                             break;
                         case 4:
-                            tmpMostArrivalWeight = costWeight + 2;
+                            tmpMostArrivalWeight = costWeight + 4;
                             break;
                     }
                 }
@@ -242,7 +248,7 @@ public class FlightService {
             if (sortedScoreList.size() < 4) {
                 max = sortedScoreList.size() - 1;
             } else {
-                max = sortedScoreList.size()/4;
+                max = sortedScoreList.size() / 4;
             }
             HashSet<Flight> result = new HashSet<>();
             flights = new ArrayList<>();
@@ -267,7 +273,7 @@ public class FlightService {
         Double maxArrival = 0.0;
         Long maxLayoverDuration = 0l;
         for (Flight flight : flights) {
-            Double tmpCost = flight.getPrice();
+            Double tmpCost = flight.getPrice() + flight.getArrival().getCountry().getCountryTravelCost().getCostMedium();
             if (tmpCost.compareTo(maxCost) > 0) {
                 maxCost = tmpCost;
             }
@@ -314,39 +320,7 @@ public class FlightService {
 
     }
 
-    class MaxParameters {
-
-        Double maxCost;
-        Double maxDuration;
-        Double maxArrival;
-        Long maxLayoverDuration;
-
-        public MaxParameters(Double maxCost, Double maxDuration, Double maxArrival, Long maxLayoverDuration) {
-            this.maxCost = maxCost;
-            this.maxDuration = maxDuration;
-            this.maxArrival = maxArrival;
-            this.maxLayoverDuration = maxLayoverDuration;
-        }
-
-        public Double getMaxCost() {
-            return maxCost;
-        }
-
-        public Double getMaxDuration() {
-            return maxDuration;
-        }
-
-        public Double getMaxArrival() {
-            return maxArrival;
-        }
-
-        public Long getMaxLayoverDuration() {
-            return maxLayoverDuration;
-        }
-
-    }
-
-    public static HashMap<Integer, Double> sortByValue(HashMap<Integer, Double> hm) {
+    public HashMap<Integer, Double> sortByValue(HashMap<Integer, Double> hm) {
         // Create a list from elements of HashMap 
         List<Map.Entry<Integer, Double>> list
                 = new LinkedList<>(hm.entrySet());
@@ -408,6 +382,18 @@ public class FlightService {
             }
         }
         return timeWeight;
+    }
+
+    public int handleLayoverWeight(int layoverWeight, int costWeight) {
+        switch (layoverWeight) {
+            case 1:
+                layoverWeight = 0;
+                break;
+            case 2:
+                layoverWeight = costWeight + 4;
+                break;
+        }
+        return layoverWeight;
     }
 
 }

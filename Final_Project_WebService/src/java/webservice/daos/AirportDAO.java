@@ -9,6 +9,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import webservice.dtos.Airport;
 import webservice.dtos.AirportArrivalCount;
+import webservice.dtos.User;
 import webservice.utils.JPAUtil;
 
 /**
@@ -35,7 +36,7 @@ public class AirportDAO {
         return airport;
     }
 
-    public List<AirportArrivalCount> getCityArrivalCount(Double arrivalCount) {
+    public List<AirportArrivalCount> getCityArrivalCount(Double arrivalCount, String username) {
         EntityManager em = JPAUtil.getEntityManagerFactory().createEntityManager();
         em.getTransaction().begin();
         List<AirportArrivalCount> list;
@@ -59,8 +60,21 @@ public class AirportDAO {
                     + "ORDER BY arrivalCount DESC", "AirportArrivalCountMapping")
                     .getResultList();
         }
+        if (username != null) {
+            User user = em.find(User.class, username);
+            List<Airport> airports = user.getAirportList();
+            for (int i = list.size() - 1; i >= 0; i--) {
+                for (Airport airport : airports) {
+                    if (list.get(i).getCity().equals(airport.getCity())) {
+                        list.remove(i);
+                        break;
+                    }
+                }
+            }
+        }
         em.getTransaction().commit();
         em.close();
+
         return list;
     }
 }

@@ -17,7 +17,7 @@ public class GenericDAO<T> {
 
     private Class<T> type;
 
-    public <T> void insert(T obj) {
+    public <T> void insert(T obj) throws Exception {
         EntityManager em = JPAUtil.getEntityManagerFactory().createEntityManager();
         em.getTransaction().begin();
         em.persist(obj);

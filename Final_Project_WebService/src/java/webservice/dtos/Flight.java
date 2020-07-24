@@ -38,7 +38,7 @@ import javax.xml.bind.annotation.XmlRootElement;
     , @NamedQuery(name = "Flight.findByArrivalDate", query = "SELECT f FROM Flight f WHERE f.arrivalDate = :arrivalDate")
     , @NamedQuery(name = "Flight.findByDuration", query = "SELECT f FROM Flight f WHERE f.duration = :duration")
     , @NamedQuery(name = "Flight.findByPrice", query = "SELECT f FROM Flight f WHERE f.price = :price")})
-public class Flight implements Serializable {
+public class Flight implements Serializable, Cloneable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -168,6 +168,11 @@ public class Flight implements Serializable {
     @Override
     public String toString() {
         return "webservice.dtos.Flight[ flightId=" + flightId + " ]";
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone(); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

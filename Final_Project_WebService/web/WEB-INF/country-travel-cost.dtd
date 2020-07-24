@@ -1,0 +1,6 @@
+<!ELEMENT countryTravelCost (countryCode|costCheap|costMedium|costHigh)+>
+<!ELEMENT countryCode (#PCDATA)>
+<!ELEMENT costCheap (#PCDATA)>
+<!ELEMENT costMedium (#PCDATA)>
+<!ELEMENT costHigh (#PCDATA)>
+

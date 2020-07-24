@@ -9,7 +9,13 @@ and open the template in the editor.
         <title>TODO supply a title</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="jquery.min.js"></script>
         <link rel="stylesheet" href="bootstrap.min.css">
+        <link href="css/font-awesome.min.css" rel="stylesheet">
+        <script src="gijgo.min.js" type="text/javascript"></script>
+        <link href="gijgo.min.css" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <style>
             .my-custom-scrollbar {
                 position: relative;
@@ -217,26 +223,18 @@ and open the template in the editor.
             }
             async function startCrawling(i) {
                 var destination = crawlAirports[i].iataCode;
-//                var start = crawlAirports[i].iataCode;
-                var today = new Date();
-                for (var j = 13; j < 19; j++) {
+                var dateParts = $('#startDate').val().split("/");
+                var today = new Date(dateParts[2], dateParts[0] - 1, dateParts[1]);
+                for (var j = 0; j < 6; j++) {
                     var date = new Date(today.getTime() + j * 24 * 60 * 60 * 1000);
                     var dd = String(date.getDate()).padStart(2, '0');
                     var mm = String(date.getMonth() + 1).padStart(2, '0');
                     var yyyy = date.getFullYear();
                     date = yyyy + '-' + mm + '-' + dd;
-//                    for (var k = 0; k < crawlAirports.length; k++) {
-//                    var destination = crawlAirports[k].iataCode;
                     var url = "http://localhost:2000/https://skiplagged.com/api/search.php?from=SGN&to=" + destination + "&depart=" + date + "&return=&format=v3";
                     getResult(url);
                     url = "http://localhost:2000/https://skiplagged.com/api/search.php?from=" + destination + "&to=SGN&depart=" + date + "&return=&format=v3";
                     getResult(url);
-//                        if (start !== destination) {
-//                            var url = "http://localhost:2000/https://skiplagged.com/api/search.php?from=" + start + "&to=" + destination + "&depart=" + date + "&return=&format=v3";
-//                            getResult(url);
-//                        }
-//                }
-
                 }
                 var tableElement = document.getElementById("tableAirport").getElementsByTagName('tbody')[0];
                 var cell = tableElement.rows[i].cells[8];
@@ -513,6 +511,35 @@ and open the template in the editor.
         <button id="btnLogin" type="button" class="btn btn-primary" onclick="crawlCountryCost()">
             Crawl country cost
         </button>
+        <div class="input-group mb-3 mt-3">
+            <label>From</label><input id="startDate" placeholder="Start date" width="276"/>
+            <label>To</label><input id="endDate" placeholder="End date" width="276"/>
+        </div>
+        <script>
+
+            var today = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+            document.getElementById("endDate").disabled = true;
+            var $endDatePicker = $('#endDate').datepicker({
+                uiLibrary: 'bootstrap4',
+                iconsLibrary: 'fontawesome'
+            });
+            $('#startDate').datepicker({
+                uiLibrary: 'bootstrap4',
+                iconsLibrary: 'fontawesome',
+                minDate: today,
+                change: function (e) {
+                    var dateParts = $('#startDate').val().split("/");
+                    var startDay = new Date(dateParts[2], dateParts[0] - 1, dateParts[1]);
+                    var date = new Date(startDay.getTime() + 5 * 24 * 60 * 60 * 1000);
+                    var dd = String(date.getDate()).padStart(2, '0');
+                    var mm = String(date.getMonth() + 1).padStart(2, '0');
+                    var yyyy = date.getFullYear();
+                    date = mm + "/" + dd + "/" + yyyy;
+                    $endDatePicker.value(date);
+                }
+            });
+            document.getElementsByClassName("btn-outline-secondary")[1].style.display = "none";
+        </script>
         <div class="table-wrapper-scroll-y my-custom-scrollbar" style="margin: 10px">
 
             <table id="tableAirport" class="table table-bordered table-striped mb-0 table-hover">
@@ -562,8 +589,13 @@ and open the template in the editor.
                     <button type="button" class="btn btn-primary btn-lg btn-block bg-primary" onclick="executeAllFlights()">Insert all flights</button>
                 </div>
             </div>
+            <div class="row" style="margin-top: 10px;">
+                <div class="col text-center">
+                    <button type="button" class="btn btn-primary btn-lg btn-block bg-success" onclick="location.reload(true);">Reset all</button>
+                </div>
+            </div>
         </div>
-        <script src="jquery.min.js"></script>
+
         <script src="bootstrap.min.js"></script>
     </body>
 </html>

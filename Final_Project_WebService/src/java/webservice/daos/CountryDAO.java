@@ -9,7 +9,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
-import javax.persistence.Persistence;
 import webservice.dtos.Country;
 import webservice.utils.JPAUtil;
 
@@ -20,7 +19,7 @@ import webservice.utils.JPAUtil;
 public class CountryDAO {
 
     public void insertEntity(Country country) {
-        EntityManager entityManager = Persistence.createEntityManagerFactory("Final_Project_WebServicePU").createEntityManager();
+        EntityManager entityManager = JPAUtil.getEntityManagerFactory().createEntityManager();
         EntityTransaction entityTransaction = entityManager.getTransaction();
         entityTransaction.begin();
         entityManager.persist(country);

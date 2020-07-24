@@ -14,6 +14,10 @@ import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -22,14 +26,21 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.xml.XMLConstants;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -39,7 +50,10 @@ import javax.xml.xpath.XPathConstants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 import webservice.daos.CountryDAO;
 import webservice.daos.CountryTravelCostDAO;
 import webservice.dtos.Country;
@@ -71,7 +85,7 @@ public class CountryCostService {
         BufferedReader br = null;
 
         try {
-            CountryTravelCostDAO countryTravelCostDAO = new CountryTravelCostDAO();
+            CountryDAO countryDAO = new CountryDAO();
             String configPath = servletContext.getRealPath("/") + "\\WEB-INF\\config.xml";
             Document doc = XMLUtils.parseFileToDom(configPath);
             XPath xPath = XMLUtils.createXPath();
@@ -94,11 +108,12 @@ public class CountryCostService {
             doc = XMLUtils.parseStringToDom(htmlContent);
             NodeList nodeList = (NodeList) xPath.evaluate("//a", doc, XPathConstants.NODESET);
             CompletableFuture[] futures = new CompletableFuture[nodeList.getLength()];
+            CountryTravelCostDAO countryTravelCostDAO = new CountryTravelCostDAO();
             for (int i = 0; i < nodeList.getLength(); i++) {
-                futures[i] = CompletableFuture.runAsync(new CountryCostTask(nodeList.item(i), countryDetailUrlFormat, converterURLFormat), executor);
+                futures[i] = CompletableFuture.runAsync(new CountryCostTask(nodeList.item(i), countryDetailUrlFormat, converterURLFormat, countryDAO, countryTravelCostDAO), executor);
             }
             CompletableFuture.allOf(futures).join();
-            
+
         } catch (Exception ex) {
             Logger.getLogger(CountryCostService.class
                     .getName()).log(Level.SEVERE, null, ex);
@@ -139,18 +154,41 @@ public class CountryCostService {
         return bufferedReader;
     }
 
-    private boolean validate(String inputXml, String schemaLocation) throws IOException, SAXException {
-
-        SchemaFactory factory = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
+    private boolean validate(String inputXml, String schemaLocation, boolean dtdCheck) throws IOException, SAXException, TransformerConfigurationException, TransformerException, ParserConfigurationException {
+        SchemaFactory schemafactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         File schemaFile = new File(schemaLocation);
-        Schema schema = factory.newSchema(schemaFile);
-        Validator validator = schema.newValidator();
+        Schema schemaSchema = schemafactory.newSchema(schemaFile);
+        Validator schemaValidator = schemaSchema.newValidator();
 
         Source source = new StreamSource(new StringReader(inputXml));
 
+        DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
+        domFactory.setValidating(true);
+        DocumentBuilder builder = domFactory.newDocumentBuilder();
+        builder.setErrorHandler(new ErrorHandler() {
+            @Override
+            public void warning(SAXParseException exception) throws SAXException {
+                throw exception; //To change body of generated methods, choose Tools | Templates.
+            }
+
+            @Override
+            public void error(SAXParseException exception) throws SAXException {
+                throw exception; //To change body of generated methods, choose Tools | Templates.
+            }
+
+            @Override
+            public void fatalError(SAXParseException exception) throws SAXException {
+                throw exception; //To change body of generated methods, choose Tools | Templates.
+            }
+
+        });
+
         boolean isValid = true;
         try {
-            validator.validate(source);
+            if (dtdCheck) {
+                builder.parse(new InputSource(new StringReader(inputXml)));
+            }
+            schemaValidator.validate(source);
         } catch (SAXException e) {
             isValid = false;
         }
@@ -163,12 +201,18 @@ public class CountryCostService {
         Node countryName;
         String countryDetailUrlFormat;
         String converterURLFormat;
+        CountryDAO countryDAO;
+        CountryTravelCostDAO countryTravelCostDAO;
 
-        public CountryCostTask(Node countryName, String countryDetailUrlFormat, String converterURLFormat) {
+        public CountryCostTask(Node countryName, String countryDetailUrlFormat, String converterURLFormat, CountryDAO countryDAO, CountryTravelCostDAO countryTravelCostDAO) {
             this.countryName = countryName;
             this.countryDetailUrlFormat = countryDetailUrlFormat;
             this.converterURLFormat = converterURLFormat;
+            this.countryDAO = countryDAO;
+            this.countryTravelCostDAO = countryTravelCostDAO;
         }
+
+       
 
         @Override
         public void run() {
@@ -176,16 +220,17 @@ public class CountryCostService {
                 int count = 0;
                 String countryNameStr = countryName.getTextContent().trim();
                 XPath xPath = XMLUtils.createXPath();
-                CountryDAO countryDAO = new CountryDAO();
-                CountryTravelCostDAO countryTravelCostDAO = new CountryTravelCostDAO();
                 Country country = countryDAO.findEntityByName(countryNameStr);
                 if (country != null && !countryNameStr.equals("Tahiti")) {
+                    String dtdPath = servletContext.getRealPath("/") + "/WEB-INF/country-travel-cost.dtd";
+                    String xml = "<!DOCTYPE countryTravelCost[" + readFile(dtdPath, StandardCharsets.UTF_8) + "]>\n"
+                            + "<countryTravelCost>\n";
+                    xml += "<countryCode>" + country.getCode() + "</countryCode>\n";
                     List<String> countryURLs = new ArrayList<>();
                     for (int j = 1; j <= 3; j++) {
                         countryURLs.add(String.format(countryDetailUrlFormat, country.getCode(), j));
 
                     }
-                    CountryTravelCost countryTravelCost = new CountryTravelCost();
                     for (int j = 0; j < countryURLs.size(); j++) {
                         try {
                             String countryURL = countryURLs.get(j);
@@ -219,7 +264,7 @@ public class CountryCostService {
                             }
                             htmlContent = htmlContent.replace("class", "xsi:type");
                             String schemaPath = servletContext.getRealPath("/") + "/WEB-INF/countryCost.xsd";
-                            if (validate(htmlContent, schemaPath)) {
+                            if (validate(htmlContent, schemaPath, false)) {
                                 Document doc = XMLUtils.parseStringToDom(htmlContent);
 
                                 String cost = ((Node) xPath.evaluate("//span[@type='curvalue']", doc, XPathConstants.NODE)).getTextContent();
@@ -236,13 +281,13 @@ public class CountryCostService {
 
                                 switch (j) {
                                     case 0:
-                                        countryTravelCost.setCostCheap(travelCost);
+                                        xml += "<costCheap>" + travelCost + "</costCheap>\n";
                                         break;
                                     case 1:
-                                        countryTravelCost.setCostMedium(travelCost);
+                                        xml += "<costMedium>" + travelCost + "</costMedium>\n";
                                         break;
                                     case 2:
-                                        countryTravelCost.setCostHigh(travelCost);
+                                        xml += "<costHigh>" + travelCost + "</costHigh>\n";
                                         break;
                                 }
                             }
@@ -252,10 +297,15 @@ public class CountryCostService {
                             Logger.getLogger(CountryCostService.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     }
-                    if (countryTravelCost.getCostCheap() != null && countryTravelCost.getCostMedium() != null && countryTravelCost.getCostHigh() != null) {
-                        countryTravelCost.setCountryCode(country.getCode());
-                        countryTravelCostDAO.insertEntity(countryTravelCost);
+                    xml += "</countryTravelCost>";
+                    JAXBContext jaxbContext = JAXBContext.newInstance(CountryTravelCost.class);
+                    Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 
+                    StringReader reader = new StringReader(xml);
+                    String schemaPath = servletContext.getRealPath("/") + "/WEB-INF/country-travel-cost.xsd";
+                    if (validate(xml, schemaPath, true)) {
+                        CountryTravelCost countryTravelCost = (CountryTravelCost) unmarshaller.unmarshal(reader);
+                        countryTravelCostDAO.insertEntity(countryTravelCost);
                     }
                 }
             } catch (Exception ex) {
@@ -263,5 +313,11 @@ public class CountryCostService {
             }
         }
 
+    }
+
+    static String readFile(String path, Charset encoding)
+            throws IOException {
+        byte[] encoded = Files.readAllBytes(Paths.get(path));
+        return new String(encoded, encoding);
     }
 }
